@@ -26,47 +26,26 @@ from openai import OpenAI
 # Import the existing query logic from our vector store setup
 from query_specs import query as retrieve_specs
 
+from prompts import format_property_gpt_prompt
+
 load_dotenv()  # Load environment variables from .env
 
 # Configure your LLM here. We are using NVIDIA NIM.
 LLM_MODEL = os.getenv("LLM_MODEL", "meta/llama-3.1-70b-instruct")
 
-def generate_spec(contract_code: str, retrieved_context: list[dict], model: str = LLM_MODEL) -> str:
-    """Generate a CVL spec using the retrieved context as examples."""
+def generate_spec(contract_code: str, retrieved_context: list[dict], contract_name: str = "TargetContract", model: str = LLM_MODEL) -> str:
+    """Generate candidate CVL rules/invariants and spec using PropertyGPT in-context learning strategy."""
     
-    # 1. Build the context string from the retrieved vector chunks
-    context_str = ""
-    for idx, chunk in enumerate(retrieved_context, 1):
-        context_str += f"--- Example {idx} (from {chunk['contract_name']} - {chunk['spec_filename']}) ---\n"
-        context_str += chunk['document'] + "\n\n"
-
-    # 2. Construct the prompt
-    system_prompt = (
-        "You are an expert formal verification engineer specializing in Certora Verification Language (CVL). "
-        "Your task is to write a highly accurate and comprehensive `.spec` file for a provided Solidity contract.\n\n"
-        "Instructions:\n"
-        "1. Analyze the provided target Solidity contract.\n"
-        "2. Review the provided 'Verified CVL Examples' for syntax, structure, and relevant rules (e.g. transfer fees, authorization, invariants).\n"
-        "3. Write a full, syntactically correct CVL specification tailored to the target contract.\n"
-        "4. Include necessary `methods` blocks and `ghost`/`hook` declarations if needed.\n"
-        "5. Output ONLY the raw CVL code. Do not include markdown formatting like ```cvl or ```solidity, just the raw text."
+    # Construct the system and user prompts using version-controlled PropertyGPT template
+    system_prompt, user_prompt = format_property_gpt_prompt(
+        contract_code=contract_code,
+        retrieved_context=retrieved_context,
+        contract_name=contract_name
     )
 
-    user_prompt = f"""
-### Verified CVL Examples (Reference Material)
-{context_str}
-
-### Target Solidity Contract
-```solidity
-{contract_code}
-```
-
-Based on the target contract above, generate the complete CVL specification.
-"""
-
-    print(f"Calling LLM ({model}) to generate the spec. This may take a moment...")
+    print(f"Calling LLM ({model}) with PropertyGPT prompt template. This may take a moment...")
     
-    # 3. Call the LLM
+    # Call the LLM
     try:
         client = OpenAI(
             base_url="https://integrate.api.nvidia.com/v1",
@@ -110,8 +89,8 @@ def main():
     results, elapsed = retrieve_specs(search_query, top_k=args.top_k)
     print(f"Found {len(results)} relevant chunks in {elapsed*1000:.0f}ms.")
     
-    # Generate the spec
-    generated_spec = generate_spec(contract_code, results)
+    # Generate the spec using PropertyGPT in-context generator
+    generated_spec = generate_spec(contract_code, results, contract_name=contract_path.name)
     
     # Remove markdown code blocks if the LLM added them despite instructions
     if generated_spec.startswith("```"):
