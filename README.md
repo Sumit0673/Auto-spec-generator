@@ -43,7 +43,7 @@ auto-spec setup
 
 Alternatively, configure a remote URL in your `.env`:
 ```bash
-CHROMA_DB_REMOTE_URL=https://your-storage.example.com/chroma_db/
+CHROMA_DB_REMOTE_URL=https://github.com/Sumit0673/Auto-spec-generator/releases/download/v1.0.0/chroma_db_v1.0.0.tar.gz
 ```
 
 ### 3. Configure LLM Access
