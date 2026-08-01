@@ -44,15 +44,30 @@ class Config:
     def __post_init__(self):
         """Initialize configuration from environment variables."""
         load_dotenv()
-        
+
         # Override from environment variables
         self.LLM_MODEL = os.getenv("LLM_MODEL", self.LLM_MODEL)
-        self.LLM_API_KEY = os.getenv("NVIDIA_API_KEY") or os.getenv("OPENAI_API_KEY")
-        
-        # Set default Chroma DB path if not specified
-        if self.CHROMA_DB_PATH is None:
-            self.CHROMA_DB_PATH = self.PROJECT_ROOT.parent / "chroma_db"
-        
+        self.LLM_API_KEY = (
+            os.getenv("NVIDIA_API_KEY")
+            or os.getenv("OPENAI_API_KEY")
+        )
+        self.CHROMA_DB_REMOTE_URL = os.getenv("CHROMA_DB_REMOTE_URL", self.CHROMA_DB_REMOTE_URL)
+
+        db_path_env = os.getenv("CHROMA_DB_PATH")
+        if db_path_env:
+            self.CHROMA_DB_PATH = Path(db_path_env)
+        elif self.CHROMA_DB_PATH is None:
+            workspace_root = self.PROJECT_ROOT.parent
+            candidate_paths = [
+                workspace_root / "erc20_pairs_final" / "chroma_db",
+                workspace_root / "chroma_db",
+                self.PROJECT_ROOT / "chroma_db",
+            ]
+            self.CHROMA_DB_PATH = next(
+                (path for path in candidate_paths if path.exists()),
+                candidate_paths[0],
+            )
+
         # Create output directory
         self.OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     

@@ -1,0 +1,17 @@
+{
+  "version": "1.0.0",
+  "release_date": 1785520987.1342523,
+  "archive": {
+    "filename": "chroma_db_v1.0.0.tar.gz",
+    "size": 714416,
+    "size_mb": 0.6813201904296875,
+    "checksum_sha256": "f739a29f40001cc79a6029f254e4f1ff822ac7741654f7f072e45da6d2ca3a8f",
+    "compression": "gzip"
+  },
+  "contents": {
+    "path": "chroma_db",
+    "description": "Vector database with 20+ verified CVL specifications"
+  },
+  "installation": "tar -xzf chroma_db.tar.gz && mv chroma_db ~/.auto-spec/",
+  "usage": "export CHROMA_DB_PATH=~/.auto-spec/chroma_db"
+}

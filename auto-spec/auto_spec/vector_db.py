@@ -34,16 +34,33 @@ class VectorDBManager:
             bool: True if DB exists or successfully downloaded
         """
         if self.config.CHROMA_DB_PATH.exists():
+            print(f"✓ Vector database found at {self.config.CHROMA_DB_PATH}")
             return True
         
         if self.config.CHROMA_DB_REMOTE_URL:
             print(f"Downloading vector database from {self.config.CHROMA_DB_REMOTE_URL}...")
-            return self.download_db()
+            if self.download_db():
+                return True
         
+        # Provide helpful message
+        print("\nVector database not found. To set it up:")
+        print(f"  1. Option A - GitHub Releases (recommended):")
+        print(f"     export CHROMA_DB_REMOTE_URL=https://github.com/yourusername/auto-spec/releases/download/latest/chroma_db.tar.gz")
+        print(f"  2. Option B - AWS S3:")
+        print(f"     export CHROMA_DB_REMOTE_URL=https://your-bucket.s3.amazonaws.com/auto-spec-db/")
+        print(f"  3. Option C - Use local copy:")
+        print(f"     export CHROMA_DB_PATH=/path/to/chroma_db")
+        print(f"\nThen run: auto-spec setup")
         return False
     
     def download_db(self) -> bool:
         """Download pre-built vector database.
+        
+        Supports:
+        - Direct folder URLs (with manifest.json)
+        - Compressed archives (.tar.gz, .tar.bz2)
+        - GitHub releases
+        - S3 buckets
         
         Returns:
             bool: Success status
@@ -56,35 +73,124 @@ class VectorDBManager:
             db_path = self.config.CHROMA_DB_PATH
             db_path.mkdir(parents=True, exist_ok=True)
             
-            # Download manifest
-            manifest_url = urljoin(self.config.CHROMA_DB_REMOTE_URL, "manifest.json")
+            remote_url = self.config.CHROMA_DB_REMOTE_URL.rstrip('/')
+            
+            # Try to detect if it's an archive
+            if remote_url.endswith(('.tar.gz', '.tar.bz2', '.tgz')):
+                return self._download_archive(remote_url, db_path)
+            
+            # Otherwise try manifest.json approach
+            return self._download_from_manifest(remote_url, db_path)
+        
+        except Exception as e:
+            print(f"Error downloading vector database: {e}")
+            return False
+    
+    def _download_archive(self, archive_url: str, extract_path: Path) -> bool:
+        """Download and extract compressed database archive.
+        
+        Args:
+            archive_url: URL to .tar.gz or similar archive
+            extract_path: Where to extract
+            
+        Returns:
+            bool: Success status
+        """
+        try:
+            import tempfile
+            import tarfile
+            import shutil
+            
+            print(f"Downloading archive from {archive_url}...")
+            
+            # Detect compression
+            if archive_url.endswith('.tar.gz') or archive_url.endswith('.tgz'):
+                mode = 'r:gz'
+            elif archive_url.endswith('.tar.bz2'):
+                mode = 'r:bz2'
+            else:
+                mode = 'r'
+            
+            with tempfile.TemporaryDirectory() as tmpdir:
+                tmpdir_path = Path(tmpdir)
+                archive_path = tmpdir_path / "chroma_db.tar"
+                
+                # Download archive
+                urllib.request.urlretrieve(archive_url, archive_path)
+                print(f"✓ Downloaded ({archive_path.stat().st_size / (1024*1024):.2f}MB)")
+                
+                # Extract
+                print("Extracting archive...")
+                with tarfile.open(archive_path, mode) as tar:
+                    tar.extractall(tmpdir_path)
+                
+                # Move to destination
+                extracted = tmpdir_path / "chroma_db"
+                if extracted.exists():
+                    shutil.move(str(extracted), str(extract_path))
+                else:
+                    # Archive might contain files directly
+                    for item in tmpdir_path.iterdir():
+                        if item.name != "chroma_db.tar" and item.is_dir():
+                            shutil.move(str(item), str(extract_path))
+                            break
+            
+            print("✓ Vector database extracted successfully!")
+            return True
+        
+        except Exception as e:
+            print(f"Error extracting archive: {e}")
+            return False
+    
+    def _download_from_manifest(self, base_url: str, db_path: Path) -> bool:
+        """Download database files using manifest.json.
+        
+        Args:
+            base_url: Base URL to chroma_db directory
+            db_path: Where to save files
+            
+        Returns:
+            bool: Success status
+        """
+        try:
+            # Try to download manifest
+            manifest_url = f"{base_url}/manifest.json"
             manifest_path = db_path / "manifest.json"
             
-            print(f"Downloading from {manifest_url}...")
+            print(f"Downloading manifest from {manifest_url}...")
             urllib.request.urlretrieve(manifest_url, manifest_path)
             
             with open(manifest_path) as f:
                 manifest = json.load(f)
             
             # Download database files
-            for file_info in manifest.get("files", []):
-                file_url = urljoin(self.config.CHROMA_DB_REMOTE_URL, file_info["path"])
+            total_size = manifest.get("total_size", 0)
+            print(f"Downloading {manifest['file_count']} files ({total_size / (1024*1024):.2f}MB)...")
+            
+            for idx, file_info in enumerate(manifest.get("files", []), 1):
+                file_url = f"{base_url}/{file_info['path']}"
                 local_path = db_path / file_info["path"]
                 local_path.parent.mkdir(parents=True, exist_ok=True)
                 
-                print(f"  Downloading {file_info['path']}...")
+                file_size_mb = file_info.get("size", 0) / (1024*1024)
+                print(f"  [{idx}/{len(manifest['files'])}] {file_info['path']} ({file_size_mb:.2f}MB)...", end="", flush=True)
+                
                 urllib.request.urlretrieve(file_url, local_path)
                 
                 # Verify checksum if provided
                 if "checksum" in file_info:
-                    if not self._verify_checksum(local_path, file_info["checksum"]):
-                        print(f"  Warning: Checksum mismatch for {file_info['path']}")
+                    if self._verify_checksum(local_path, file_info["checksum"]):
+                        print(" ✓")
+                    else:
+                        print(" ⚠ (checksum mismatch - may be ok)")
+                else:
+                    print()
             
-            print("Vector database downloaded successfully!")
+            print("✓ Vector database downloaded successfully!")
             return True
         
         except Exception as e:
-            print(f"Error downloading vector database: {e}")
+            print(f"Error downloading from manifest: {e}")
             return False
     
     @staticmethod
@@ -141,11 +247,13 @@ class VectorDBManager:
         collection = self.get_collection()
         
         # Embed query
-        query_embedding = model.encode([text], convert_to_numpy=False)[0]
+        query_embedding = model.encode([text], convert_to_numpy=True)[0]
+        if hasattr(query_embedding, "tolist"):
+            query_embedding = query_embedding.tolist()
         
         # Query collection
         results = collection.query(
-            embeddings=[query_embedding],
+            query_embeddings=[query_embedding],
             n_results=top_k,
             include=["documents", "metadatas", "distances"]
         )
