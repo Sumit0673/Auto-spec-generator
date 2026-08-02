@@ -51,7 +51,17 @@ class Config:
         
         # Set default Chroma DB path if not specified
         if self.CHROMA_DB_PATH is None:
-            self.CHROMA_DB_PATH = self.PROJECT_ROOT.parent / "chroma_db"
+            candidates = [
+                self.PROJECT_ROOT / "erc20_pairs_final" / "chroma_db",
+                self.PROJECT_ROOT / "chroma_db",
+                self.PROJECT_ROOT.parent / "chroma_db",
+            ]
+            for candidate in candidates:
+                if candidate.exists():
+                    self.CHROMA_DB_PATH = candidate
+                    break
+            if self.CHROMA_DB_PATH is None:
+                self.CHROMA_DB_PATH = self.PROJECT_ROOT / "chroma_db"
         
         # Create output directory
         self.OUTPUT_DIR.mkdir(parents=True, exist_ok=True)

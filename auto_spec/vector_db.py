@@ -248,13 +248,24 @@ class VectorDBManager:
         
         # Embed query
         query_embedding = model.encode([text], convert_to_numpy=False)[0]
-        
+        if hasattr(query_embedding, "tolist"):
+            query_embedding = query_embedding.tolist()
+        elif isinstance(query_embedding, tuple):
+            query_embedding = list(query_embedding)
+
         # Query collection
-        results = collection.query(
-            embeddings=[query_embedding],
-            n_results=top_k,
-            include=["documents", "metadatas", "distances"]
-        )
+        try:
+            results = collection.query(
+                embeddings=[query_embedding],
+                n_results=top_k,
+                include=["documents", "metadatas", "distances"]
+            )
+        except TypeError:
+            results = collection.query(
+                query_embeddings=[query_embedding],
+                n_results=top_k,
+                include=["documents", "metadatas", "distances"]
+            )
         
         # Format results
         formatted_results = []

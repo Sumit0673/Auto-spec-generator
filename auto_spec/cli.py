@@ -7,6 +7,11 @@ import sys
 import argparse
 from pathlib import Path
 
+if __package__ in {None, ""}:
+    project_root = Path(__file__).resolve().parent.parent
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+
 from auto_spec import SpecGenerator, __version__
 from auto_spec.config import get_config
 from auto_spec.vector_db import VectorDBManager
