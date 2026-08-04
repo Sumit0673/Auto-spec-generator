@@ -20,9 +20,13 @@ class Config:
     PROJECT_ROOT: Path = Path(__file__).parent.parent
     
     # LLM Configuration
-    LLM_PROVIDER: str = "nvidia"  # or "openai", "anthropic", etc.
+    LLM_PROVIDER: str = "openrouter"  # or "openai", "anthropic", etc.
     LLM_MODEL: str = "meta/llama-3.1-70b-instruct"
+    LLM_GEMINI_MODEL: str = "gemini-2.5-pro"
+    LLM_DEEPSEEK_MODEL: str = "deepseek/llm-3.5"
+    LLM_OPENROUTER_MODEL: str = "openai/gpt-4o-mini"
     LLM_BASE_URL: str = "https://integrate.api.nvidia.com/v1"
+    LLM_BASE_GEMINI_URL: str = "https://api.generativeai.google/v1beta2"
     LLM_API_KEY: Optional[str] = None
     LLM_TEMPERATURE: float = 0.2
     
@@ -46,8 +50,8 @@ class Config:
         load_dotenv()
         
         # Override from environment variables
-        self.LLM_MODEL = os.getenv("LLM_MODEL", self.LLM_MODEL)
-        self.LLM_API_KEY = os.getenv("NVIDIA_API_KEY") or os.getenv("OPENAI_API_KEY")
+        self.LLM_MODEL = os.getenv("LLM_MODEL", self.LLM_OPENROUTER_MODEL)
+        self.LLM_API_KEY = os.getenv("OPENROUTER_API_KEY")
         
         # Set default Chroma DB path if not specified
         if self.CHROMA_DB_PATH is None:
@@ -73,7 +77,7 @@ class Config:
             tuple: (is_valid, error_message)
         """
         if not self.LLM_API_KEY:
-            return False, "LLM API Key not found. Set NVIDIA_API_KEY or OPENAI_API_KEY environment variable."
+            return False, "LLM API Key not found. Set OPENROUTER_API_KEY environment variable."
         
         if not self.CHROMA_DB_PATH.exists() and not self.CHROMA_DB_REMOTE_URL:
             return False, (

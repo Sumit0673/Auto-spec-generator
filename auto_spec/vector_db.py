@@ -16,6 +16,7 @@ import chromadb
 from sentence_transformers import SentenceTransformer
 
 from auto_spec.config import get_config
+from auto_spec.retrieval import extract_spec_chunk
 
 
 class VectorDBManager:
@@ -206,7 +207,7 @@ class VectorDBManager:
         """Load embedding model."""
         if self._model is None:
             print(f"Loading embedding model: {self.config.EMBEDDING_MODEL}...")
-            self._model = SentenceTransformer(self.config.EMBEDDING_MODEL)
+            self._model = SentenceTransformer(self.config.EMBEDDING_MODEL, local_files_only=True)
         return self._model
     
     def get_collection(self):
@@ -279,7 +280,7 @@ class VectorDBManager:
                 similarity = 1 - (distance / 2)
                 
                 formatted_results.append({
-                    "document": doc,
+                    "document": extract_spec_chunk(doc),
                     "contract_name": metadata.get("contract_name", "Unknown"),
                     "spec_filename": metadata.get("spec_filename", "spec.spec"),
                     "score": similarity,

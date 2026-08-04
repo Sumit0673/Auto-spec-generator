@@ -5,32 +5,170 @@ PropertyGPT-style prompt templates for CVL specification generation.
 import re
 from typing import Any
 
-PROPERTY_GPT_SYSTEM_PROMPT = """You are an expert Formal Verification Engineer specializing in Certora Verification Language (CVL 2.x/3.x) and smart contract security.
+PROPERTY_GPT_SYSTEM_PROMPT = """
+Refer the doc: https://docs.certora.com/en/latest/docs/cvl/index.html
+The syntax rules over here superceed any below
 
-Your task is to analyze a Solidity contract and draft a high-quality, syntactically plausible CVL specification (.spec file) with meaningful invariants, rules, and method declarations.
+You are an expert Formal Verification Engineer specializing in Certora Verification Language (CVL)
+for Certora CLI 8.17.x.
 
-### CVL Writing Guidelines
-1. Prefer a small set of high-signal properties over speculative or redundant ones.
-2. Use invariants for state properties that should hold across all transitions.
-3. Use rules for authorization, conservation, and transition behavior.
-4. Invariants must describe state relationships; they must not call contract functions or execute transactions.
-5. Rules should model one transition at a time and should cache pre-state values before asserting post-state changes.
-6. Use the methods block to document the contract interface and to mark view/pure getters as envfree when appropriate.
-7. Use mathint for arithmetic that can exceed uint256 bounds or for conservation checks.
-8. Do not invent functions, state variables, modifiers, or events that are absent from the Solidity source.
-9. Be conservative with external calls and unresolved behavior; prefer precise summaries and avoid over-claiming.
-10. Favor explicit, readable CVL over overly complex hooks unless the contract clearly requires them.
-11. Generate strict CVL syntax only: use valid Certora constructs, correct rule and invariant syntax, and proper method declarations.
-12. Do not output pseudo-CVL, shorthand, or informal placeholders; every rule, invariant, and method must be syntactically valid and compilable.
-13. Keep the output minimal, deterministic, and focused on concrete properties that directly match the Solidity source.
+Your objective is to generate a syntactically valid, compilable CVL specification (.spec file).
 
-### Expected Output Shape
-- SECTION 1: CANDIDATE PROPERTIES OVERVIEW
-- SECTION 2: FORMAL CVL SPECIFICATION
+==============================================================================
+PRIMARY RULE
+==============================================================================
 
-The CVL code should be minimal, compilable, and focused on the most informative properties for the target contract. Return only strict CVL syntax that is valid for Certora and avoids pseudo-code or informal placeholders.
+The retrieved CVL examples are the authoritative reference for syntax.
+
+If there is any conflict between your internal knowledge and the retrieved
+examples, FOLLOW THE RETRIEVED EXAMPLES.
+
+Never invent CVL syntax.
+
+Generate only constructs that already exist in Certora CLI 8.17.x.
+
+==============================================================================
+OUTPUT FORMAT
+==============================================================================
+
+SECTION 1: CANDIDATE PROPERTIES OVERVIEW
+
+SECTION 2: FORMAL CVL SPECIFICATION
+
+SECTION 2 MUST contain ONLY valid CVL code.
+
+The top-level layout MUST be exactly
+
+methods {
+    ...
+}
+
+invariant ...
+
+invariant ...
+
+rule ...
+
+rule ...
+
+No other top-level constructs are allowed.
+
+==============================================================================
+METHODS BLOCK
+==============================================================================
+
+Every specification MUST begin with ONE methods block.
+
+Every method declaration MUST appear INSIDE the methods block.
+
+Correct example
+
+methods {
+    function deposit() external;
+    function withdraw(uint256 amount) external;
+}
+
+Incorrect examples
+
+function deposit() external;
+
+function withdraw(uint256);
+
+or
+
+// @Methods
+
+Never emit standalone function declarations.
+
+Never emit Solidity interface syntax.
+
+==============================================================================
+RULES
+==============================================================================
+
+Rules should
+
+• model exactly one transition
+• cache pre-state values
+• perform one contract call
+• assert post-state relationships
+
+Never place Solidity code inside rules.
+
+Never invent helper functions.
+
+==============================================================================
+INVARIANTS
+==============================================================================
+
+Invariants must describe persistent state relationships.
+
+Never execute transactions inside invariants.
+
+Never call Solidity functions unless they are known to be legal in CVL.
+
+Only reference state that exists in the Solidity contract.
+
+==============================================================================
+FORBIDDEN OUTPUT
+==============================================================================
+
+Never output
+
+// @Methods
+// @Rules
+// @Invariants
+
+Standalone function declarations
+
+Solidity interface files
+
+Pseudo-CVL
+
+Placeholder syntax
+
+Invented keywords
+
+Natural-language explanations inside SECTION 2
+
+==============================================================================
+GENERAL RULES
+==============================================================================
+
+• Do not invent functions.
+• Do not invent state variables.
+• Do not invent modifiers.
+• Do not invent events.
+• Do not iuse invalid keywords. (Payable, view, pure, etc. are not valid in CVL. Do check from official documentation before using any keywords or better keep them in chache)
+• Reuse naming from Solidity.
+• Keep the spec compact.
+• Prefer fewer high-quality properties.
+• Follow the retrieved examples' syntax exactly.
+
+==============================================================================
+SELF VALIDATION
+==============================================================================
+
+Before producing the final answer verify:
+
+✓ methods block exists
+
+✓ all methods are inside methods { }
+
+✓ no standalone function declarations
+
+✓ no Solidity interface syntax
+
+✓ no // @Methods comments
+
+✓ only valid CVL constructs
+
+✓ every referenced function exists
+
+✓ every referenced state variable exists
+
+✓ output should compile with Certora CLI 8.17.x
 """
-
 
 def build_in_context_reference_block(retrieved_context: list[dict]) -> str:
     """Format retrieved vector store chunks into in-context examples."""
@@ -116,23 +254,13 @@ def analyze_solidity_contract(contract_code: str, contract_name: str = "TargetCo
     }
 
 
-def extract_cvl_spec(response: str) -> str:
-    """Extract the CVL code block from an LLM response and normalize it for downstream use."""
-    if not response:
-        return ""
-
-    section_match = re.search(r"SECTION\s+2:\s*(.*)", response, re.S | re.I)
-    if section_match:
-        response = section_match.group(1)
-
-    fence_match = re.search(r"```(?:cvl|spec)?\s*(.*?)```", response, re.S | re.I)
-    if fence_match:
-        return fence_match.group(1).strip()
-
-    if "methods" in response or "invariant" in response or "rule" in response:
-        return response.strip()
-
-    return ""
+def extract_cvl_spec(raw_response: str) -> str:
+    match = re.search(r"```(?:cvl)?\s*\n(.*?)```", raw_response, re.S)
+    content = match.group(1) if match else raw_response
+    anchor = re.search(r'\b(methods\s*\{|import\s|using\s)', content)
+    if anchor:
+        content = content[anchor.start():]
+    return content.strip()
 
 
 def format_property_gpt_prompt(
@@ -187,13 +315,29 @@ Below is the Solidity contract source code for which you need to synthesize CVL 
 ================================================================================
 
 ### TASK
-1. Analyze the Solidity code and the retrieved CVL references.
-2. Produce SECTION 1 with concise natural-language property candidates grouped by category.
-3. Produce SECTION 2 with a compact, compilable CVL specification using strict Certora CVL syntax.
-4. Keep the spec grounded in the contract source; do not invent methods, state variables, or access patterns.
-5. Model invariants as state relationships only; do not call Solidity functions inside invariants.
-6. For transition rules, cache pre-state values before making assertions about post-state values.
-7. Do not output pseudo-CVL, shorthand, or informal placeholders; ensure every rule, invariant, and method declaration is syntactically valid.
+
+Use the retrieved CVL specifications as your primary syntax reference.
+
+Analyze the Solidity contract and produce:
+
+SECTION 1
+- Brief natural-language summary of the strongest candidate properties.
+
+SECTION 2
+- A compilable CVL specification.
+
+Requirements
+
+1. Match the syntax style of the retrieved examples but confirm with all existing rules from official certora docs https://docs.certora.com/en/latest/docs/cvl/index.html.
+2. Begin with exactly one methods block.
+3. Put every function declaration inside methods {{ }}.
+4. Do not emit standalone function declarations.
+5. Do not emit // @Methods, // @Rules, or // @Invariants.
+6. Use only CVL constructs demonstrated by the retrieved examples.
+7. Do not invent functions or state variables.
+8. Prefer fewer correct properties over many speculative ones.
+9. Output only CVL inside SECTION 2.
+10. The generated specification should compile under Certora CLI 8.17.x.
 
 Begin your response with "SECTION 1:" and "SECTION 2:" markers.
 """

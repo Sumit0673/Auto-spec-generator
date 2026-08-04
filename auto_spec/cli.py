@@ -5,6 +5,7 @@ CLI entry point for Auto-Spec.
 
 import sys
 import argparse
+import json
 from pathlib import Path
 
 if __package__ in {None, ""}:
@@ -15,6 +16,7 @@ if __package__ in {None, ""}:
 from auto_spec import SpecGenerator, __version__
 from auto_spec.config import get_config
 from auto_spec.vector_db import VectorDBManager
+from auto_spec.evaluation import run_evaluation
 
 
 def cmd_generate(args):
@@ -26,7 +28,13 @@ def cmd_generate(args):
             contract_path=args.contract,
             query=args.query,
             top_k=args.top_k,
-            output_path=args.output
+            output_path=args.output,
+            validate=args.check,
+            certora_contract_name=args.contract_name,
+            validation_timeout=args.validation_timeout,
+            project_root=args.project_root,
+            remappings_file=args.remappings,
+            certora_config=args.certora_config,
         )
         
         if not args.output and not args.quiet:
@@ -82,6 +90,23 @@ def cmd_config(args):
     print(f"API Key Set: {bool(config.LLM_API_KEY)}")
 
 
+def cmd_evaluate(args):
+    """Evaluate retrieval and, optionally, compile reference CVL specs."""
+    config = get_config()
+    dataset = Path(args.dataset)
+    report = run_evaluation(
+        dataset, VectorDBManager(config), args.top_k, args.limit, args.compile_references, args.timeout
+    )
+    output = Path(args.output)
+    output.write_text(json.dumps(report, indent=2), encoding="utf-8")
+    retrieval = report["retrieval"]
+    print(f"Retrieval self-hit@{retrieval['top_k']}: {retrieval['hits']}/{retrieval['total']} ({retrieval['hit_rate']:.1%})")
+    if "compilation" in report:
+        compilation = report["compilation"]
+        print(f"Reference CVL compilation: {compilation['passed']}/{compilation['total']} ({compilation['pass_rate']:.1%})")
+    print(f"Report written to: {output}")
+
+
 def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
@@ -117,6 +142,12 @@ Examples:
     gen_parser.add_argument("--top_k", type=int, default=3, help="Number of reference specs (default: 3)")
     gen_parser.add_argument("--output", "-o", help="Output path for .spec file")
     gen_parser.add_argument("--quiet", action="store_true", help="Don't print spec to stdout")
+    gen_parser.add_argument("--check", action="store_true", help="Compile the generated CVL with Certora")
+    gen_parser.add_argument("--contract-name", help="Contract name passed to Certora (defaults to the file stem)")
+    gen_parser.add_argument("--validation-timeout", type=int, default=300, help="Certora compilation timeout in seconds")
+    gen_parser.add_argument("--project-root", help="Solidity project root (defaults to the contract directory)")
+    gen_parser.add_argument("--remappings", help="Foundry remappings.txt file")
+    gen_parser.add_argument("--certora-config", help="Existing Certora .conf/.json input for --check")
     gen_parser.set_defaults(func=cmd_generate)
     
     # Setup command
@@ -126,6 +157,15 @@ Examples:
     # Config command
     config_parser = subparsers.add_parser("config", help="Show configuration")
     config_parser.set_defaults(func=cmd_config)
+
+    eval_parser = subparsers.add_parser("evaluate", help="Evaluate retrieval and optional local Certora compilation")
+    eval_parser.add_argument("--dataset", default="erc20_pairs_final/dataset.json", help="Paired Solidity/CVL dataset")
+    eval_parser.add_argument("--output", default="evaluation_report.json", help="JSON report path")
+    eval_parser.add_argument("--top-k", type=int, default=3, help="Retrieval cutoff")
+    eval_parser.add_argument("--limit", type=int, default=None, help="Evaluate only the first N pairs")
+    eval_parser.add_argument("--compile-references", action="store_true", help="Compile reference specs locally with Certora")
+    eval_parser.add_argument("--timeout", type=int, default=300, help="Per-reference Certora timeout in seconds")
+    eval_parser.set_defaults(func=cmd_evaluate)
     
     args = parser.parse_args()
     
