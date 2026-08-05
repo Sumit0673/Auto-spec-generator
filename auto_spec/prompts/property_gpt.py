@@ -27,6 +27,8 @@ Never invent CVL syntax.
 
 Generate only constructs that already exist in Certora CLI 8.17.x.
 
+Exception: the retrieved examples are excerpts and may omit the methods block. Methods-block completeness rules below always apply regardless of what retrieved examples show or omit.
+
 ==============================================================================
 OUTPUT FORMAT
 ==============================================================================
@@ -83,6 +85,26 @@ Never emit standalone function declarations.
 Never emit Solidity interface syntax.
 
 ==============================================================================
+METHODS BLOCK COMPLETENESS (MANDATORY — applies even if retrieved examples omit this)
+==============================================================================
+Every public state variable and public mapping referenced anywhere in a rule
+or invariant MUST have a matching methods block entry for its Solidity-
+generated getter. Example:
+
+Solidity:
+    uint256 public unlockTime;
+    mapping(address => uint256) public deposits;
+
+Required methods block entries:
+    function unlockTime() external returns (uint256) envfree;
+    function deposits(address) external returns (uint256) envfree;
+
+Never reference unlockTime, deposits, or any other public variable/mapping
+as a bare identifier or unregistered function. If it is not declared in
+methods{}, it does not exist in CVL, regardless of what the retrieved
+examples show.
+
+==============================================================================
 RULES
 ==============================================================================
 
@@ -108,6 +130,18 @@ Never execute transactions inside invariants.
 Never call Solidity functions unless they are known to be legal in CVL.
 
 Only reference state that exists in the Solidity contract.
+
+==============================================================================
+INVARIANTS VS RULE
+==============================================================================
+
+Use `invariant` ONLY for properties that hold in every single reachable
+state on their own (no before/after comparison).
+Use `rule` with explicit pre-state and post-state snapshots for any
+property that compares state before and after a function call
+(monotonicity, restricted-mutation, conservation, "X only changes via Y").
+Never write an invariant body that compares a function's result to a bare
+undeclared identifier.
 
 ==============================================================================
 FORBIDDEN OUTPUT

@@ -53,7 +53,7 @@ class SpecGenerator:
         project_root: Optional[str] = None,
         remappings_file: Optional[str] = None,
         certora_config: Optional[str] = None,
-        max_repairs: int = 3
+        max_repairs: int = 10
     ) -> str:
         """
         Generate CVL specification for a Solidity contract.
@@ -96,9 +96,9 @@ class SpecGenerator:
         # Generate spec using LLM
         print(f"Generating CVL spec using {self.config.LLM_OPENROUTER_MODEL}...")
         spec_content = self._call_llm(contract_code=contract_code, retrieved_context=retrieved_context, contract_name=contract_name)
-        _strip_solidity_mutability_keywords(spec_content)
+        spec_content = _strip_solidity_mutability_keywords(spec_content)
 
-        validation_output_path = self.save_spec(spec_content, output_path)
+        validation_output_path = self.save_spec(spec_content, output_path, 0)
 
         if validate:
             for attempt in range(max_repairs):
@@ -114,7 +114,7 @@ class SpecGenerator:
                     previous_spec=spec_content,
                 )
                 spec_content = _strip_solidity_mutability_keywords(spec_content)
-                validation_output_path = self.save_spec(spec_content, output_path)
+                validation_output_path = self.save_spec(spec_content, output_path, attempt+1)
 
                 print("#" * 50)
                 print(f"Certora compilation of attempt {attempt+1}: {result.output}")
@@ -123,12 +123,12 @@ class SpecGenerator:
 
         return spec_content    
 
-    def save_spec(self, spec_content: str, output_path: Optional[str]) -> Path:
+    def save_spec(self, spec_content: str, output_path: Optional[str], attempt: int) -> Path:
         """Save the generated CVL spec to a file."""
         if not output_path:
             output_path = self.config.OUTPUT_DIR / "generated_spec.cvl"
         else:
-            output_path = Path(output_path)
+            output_path = Path(output_path + str(attempt))
             if not output_path.suffix:
                 output_path = output_path.with_suffix(".cvl")
         
@@ -209,7 +209,7 @@ class SpecGenerator:
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_prompt},
                     ],
-                    max_tokens=10000,
+                    max_tokens=2000,
                     temperature=temperature,
                 )
                 raw_response = response.choices[0].message.content.strip()
