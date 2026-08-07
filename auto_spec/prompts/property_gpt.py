@@ -143,6 +143,15 @@ property that compares state before and after a function call
 Never write an invariant body that compares a function's result to a bare
 undeclared identifier.
 
+FORBIDDEN inside CVL specs:
+- `require` statements WITH string messages: write `require condition;`, NOT `require condition, "msg";` or `require(condition, "msg");`. CVL `require` does NOT accept string error messages.
+- `sum()` on non-ghost variables: `sum()` can ONLY be applied to `ghost` variables, never mappings or state variables.
+- Bracket indexing on getters: write `deposits(user)`, NOT `deposits[user]`. Public mappings in methods{} are functions.
+- `old(...)` or `@old`
+- `before` / `after` keywords
+- Comparing the same function call to itself (e.g., `f() >= f()`)
+- Any pre/post state comparison inside invariant bodies — use a `rule` instead
+
 ==============================================================================
 FORBIDDEN OUTPUT
 ==============================================================================
@@ -180,6 +189,26 @@ GENERAL RULES
 • Follow the retrieved examples' syntax exactly.
 
 ==============================================================================
+GHOST + HOOK PATTERN (FIXED EXEMPLAR — use this, not sum() over raw mappings)
+==============================================================================
+
+To track aggregates (e.g., sum of all deposits), use a ghost variable with a
+hook. NEVER write `sum(deposits)` or similar — that syntax does not exist.
+
+Correct pattern:
+
+    ghost mathint ghostTotalDeposits {
+        init_state axiom ghostTotalDeposits == 0;
+    }
+
+    hook Sstore deposits[KEY address user] uint256 newVal (uint256 oldVal) {
+        ghostTotalDeposits = ghostTotalDeposits + newVal - oldVal;
+    }
+
+    invariant totalDepositsTracked()
+        to_mathint(totalDeposits()) == ghostTotalDeposits;
+
+==============================================================================
 SELF VALIDATION
 ==============================================================================
 
@@ -200,6 +229,10 @@ Before producing the final answer verify:
 ✓ every referenced function exists
 
 ✓ every referenced state variable exists
+
+✓ no `sum()` over raw mappings (use ghost+hook pattern above)
+
+✓ no before/after logic inside invariants (use rules for that)
 
 ✓ output should compile with Certora CLI 8.17.x
 """
@@ -376,4 +409,100 @@ Requirements
 Begin your response with "SECTION 1:" and "SECTION 2:" markers.
 """
 
+    return PROPERTY_GPT_SYSTEM_PROMPT, user_prompt
+
+
+def format_per_function_prompt(
+    contract_code: str,
+    function_name: str,
+    methods_block: str,
+    retrieved_context: list[dict],
+    contract_name: str = "TargetContract",
+    known_errors: list[str] | None = None,
+) -> tuple[str, str]:
+    """Prompt for drafting rules for a single function (parallel-safe)."""
+    context_block = build_in_context_reference_block(retrieved_context)
+
+    known_errors_block = ""
+    if known_errors:
+        error_list = "\n".join(f"- {e}" for e in known_errors[:10])
+        known_errors_block = (
+            "\n### KNOWN-BAD PATTERNS — do not repeat these:\n"
+            f"{error_list}\n"
+        )
+
+    user_prompt = f"""### METHODS BLOCK (provided — do NOT modify)
+```cvl
+{methods_block}
+```
+
+### REFERENCE EXAMPLES
+{context_block}
+
+### TARGET CONTRACT: {contract_name}
+```solidity
+{contract_code}
+```
+{known_errors_block}
+### TASK
+Write CVL rules ONLY for the function `{function_name}`. Do NOT include
+a methods block (it is provided above). Do NOT write rules for other
+functions. Focus on:
+- Pre/post state relationships
+- Revert conditions
+- Return value correctness
+
+Output ONLY CVL code (rules), no natural language.
+"""
+    return PROPERTY_GPT_SYSTEM_PROMPT, user_prompt
+
+
+def format_cross_cutting_prompt(
+    contract_code: str,
+    function_names: list[str],
+    methods_block: str,
+    retrieved_context: list[dict],
+    contract_name: str = "TargetContract",
+    known_errors: list[str] | None = None,
+) -> tuple[str, str]:
+    """Prompt for cross-cutting invariants spanning the whole contract."""
+    context_block = build_in_context_reference_block(retrieved_context)
+    fn_list = ", ".join(function_names)
+
+    known_errors_block = ""
+    if known_errors:
+        error_list = "\n".join(f"- {e}" for e in known_errors[:10])
+        known_errors_block = (
+            "\n### KNOWN-BAD PATTERNS — do not repeat these:\n"
+            f"{error_list}\n"
+        )
+
+    user_prompt = f"""### METHODS BLOCK (provided — do NOT modify)
+```cvl
+{methods_block}
+```
+
+### REFERENCE EXAMPLES
+{context_block}
+
+### TARGET CONTRACT: {contract_name}
+```solidity
+{contract_code}
+```
+
+Functions: {fn_list}
+{known_errors_block}
+### TASK
+Write CVL invariants and cross-cutting rules that span MULTIPLE functions.
+Do NOT include a methods block. Do NOT write per-function rules (those are
+handled separately). Focus on:
+- State invariants (e.g., totalSupply == sum of balances)
+- Conservation laws
+- Access-control consistency
+- Global solvency / monotonicity properties
+
+Use the ghost+hook pattern for aggregation — never use sum() on raw mappings.
+
+Output ONLY CVL code (invariants and rules), no natural language.
+"""
     return PROPERTY_GPT_SYSTEM_PROMPT, user_prompt

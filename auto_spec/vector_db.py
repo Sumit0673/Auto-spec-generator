@@ -286,8 +286,19 @@ class VectorDBManager:
                     "score": similarity,
                     **metadata
                 })
-        
-        return formatted_results
+
+        # Phase 3: similarity floor — drop chunks below threshold
+        floor = self.config.MIN_RETRIEVAL_SIMILARITY
+        before_count = len(formatted_results)
+        kept = [r for r in formatted_results if r["score"] >= floor]
+        dropped = before_count - len(kept)
+        if dropped:
+            print(f"  Retrieval floor ({floor}): dropped {dropped}/{before_count} chunks below threshold")
+            for r in formatted_results:
+                if r["score"] < floor:
+                    print(f"    ↳ {r['contract_name']} score={r['score']:.4f} (below {floor})")
+
+        return kept
     
     def close(self):
         """Close database connection."""

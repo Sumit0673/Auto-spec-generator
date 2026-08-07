@@ -22,7 +22,19 @@ from auto_spec.evaluation import run_evaluation
 def cmd_generate(args):
     """Generate CVL specification."""
     try:
-        generator = SpecGenerator()
+        config = get_config()
+        if args.db_path:
+            config.CHROMA_DB_PATH = Path(args.db_path)
+        if args.temperature is not None:
+            config.LLM_TEMPERATURE = args.temperature
+        if args.max_tokens is not None:
+            config.LLM_MAX_TOKENS = args.max_tokens
+        # Re-validate config after overrides
+        is_valid, error_msg = config.validate()
+        if not is_valid:
+            raise RuntimeError(f"Configuration error: {error_msg}")
+
+        generator = SpecGenerator(config)
         
         spec = generator.generate(
             contract_path=args.contract,
@@ -35,6 +47,7 @@ def cmd_generate(args):
             project_root=args.project_root,
             remappings_file=args.remappings,
             certora_config=args.certora_config,
+            parallel=not getattr(args, 'no_parallel', False),
         )
         
         if not args.output and not args.quiet:
@@ -77,17 +90,22 @@ def cmd_setup(args):
 
 def cmd_config(args):
     """Display current configuration."""
+    from auto_spec.config import PROVIDER_DEFAULTS
     config = get_config()
-    
+    env_key = PROVIDER_DEFAULTS[config.LLM_PROVIDER][0]
+
     print("Auto-Spec Configuration")
-    print("="*50)
-    print(f"LLM Provider: {config.LLM_PROVIDER}")
-    print(f"LLM Model: {config.LLM_MODEL}")
+    print("=" * 50)
+    print(f"LLM Provider:   {config.LLM_PROVIDER}")
+    print(f"LLM Model:      {config.LLM_MODEL}")
+    print(f"LLM Base URL:   {config.LLM_BASE_URL or '(default)'}")
+    print(f"API Key ({env_key}): {'✓ set' if config.LLM_API_KEY else '✗ missing'}")
+    print(f"Temperature:    {config.LLM_TEMPERATURE}")
     print(f"Embedding Model: {config.EMBEDDING_MODEL}")
     print(f"Chroma DB Path: {config.CHROMA_DB_PATH}")
-    print(f"Output Directory: {config.OUTPUT_DIR}")
-    print(f"Top K Results: {config.TOP_K_RESULTS}")
-    print(f"API Key Set: {bool(config.LLM_API_KEY)}")
+    print(f"Output Dir:     {config.OUTPUT_DIR}")
+    print(f"Top K Results:  {config.TOP_K_RESULTS}")
+    print(f"Similarity Floor: {config.MIN_RETRIEVAL_SIMILARITY}")
 
 
 def cmd_evaluate(args):
@@ -148,6 +166,10 @@ Examples:
     gen_parser.add_argument("--project-root", help="Solidity project root (defaults to the contract directory)")
     gen_parser.add_argument("--remappings", help="Foundry remappings.txt file")
     gen_parser.add_argument("--certora-config", help="Existing Certora .conf/.json input for --check")
+    gen_parser.add_argument("--no-parallel", action="store_true", help="Disable parallel per-function drafting")
+    gen_parser.add_argument("--db-path", help="Path to Chroma DB (overrides CHROMA_DB_PATH)")
+    gen_parser.add_argument("--temperature", type=float, help="LLM sampling temperature (overrides config)")
+    gen_parser.add_argument("--max-tokens", type=int, help="Maximum tokens for LLM generation (overrides config)")
     gen_parser.set_defaults(func=cmd_generate)
     
     # Setup command
