@@ -174,11 +174,11 @@ class SpecGenerator:
                 spec_content = _clean_cvl_spec(spec_content, det_methods_block, contract_code)
                 validation_output_path = self.save_spec(spec_content, output_path, attempt + 1)
 
-                print("#" * 50)
+                print("#" * 50 + "START" + "#" * 50)
                 print(f"Attempt {attempt+1} ({error_source}) failures:")
                 for err in feedback_lines[:5]:
                     print(f"  • {err}")
-                print("#" * 50)
+                print("#" * 50 + "END" + "#" * 50)
             else:
                 # Loop exhausted without passing — still record final state
                 self.error_memory.record(contract_hash, run_id, max_repairs, spec_content, feedback_lines)
@@ -470,6 +470,11 @@ def _clean_cvl_spec(spec_content: str, det_methods_block: str, contract_code: st
     #    them accurately in the repair prompt.
     spec_content = _apply_env_subs_outside_invariants(spec_content)
 
+    # 10. Auto-inject missing ghost declarations.
+    #     LLMs frequently reference ghostXxx identifiers without declaring them.
+    #     Asking via repair prompt doesn't work reliably — just inject deterministically.
+    spec_content = _inject_ghost_declarations(spec_content)
+
     return spec_content
 
 
@@ -516,7 +521,7 @@ def _replace_methods_block(spec: str, deterministic_block: str) -> str:
         elif spec[i] == '}':
             depth -= 1
             if depth == 0:
-                return deterministic_block + spec[i + 1:]
+                return spec[:match.start()] + deterministic_block + spec[i + 1:]
     # Couldn't find closing brace — prepend
     return deterministic_block + "\n\n" + spec
 
@@ -545,6 +550,28 @@ def _apply_env_subs_outside_invariants(spec: str) -> str:
         part if re.match(r'\ninvariant\s', part) else _apply(part)
         for part in parts
     )
+
+
+def _inject_ghost_declarations(spec: str) -> str:
+    """Auto-inject ghost variable declarations that are referenced but never declared.
+
+    LLMs reliably use `ghostXxx` naming convention but unreliably write the
+    corresponding `ghost uint256 ghostXxx;` declaration. Injecting it here is
+    cheaper and more reliable than burning repair-loop round trips on it.
+    Declarations are inserted immediately before the methods block (or at the
+    top if no methods block exists). Default type is uint256.
+    """
+    declared: set[str] = set(re.findall(r'\bghost\s+\S+\s+(\w+)\s*[;{]', spec))
+    used: set[str] = set(re.findall(r'\b(ghost\w+)\b', spec))
+    missing = sorted(used - declared)
+    if not missing:
+        return spec
+    decls = '\n'.join(f'ghost uint256 {name};' for name in missing) + '\n\n'
+    methods_match = re.search(r'\bmethods\s*\{', spec)
+    if methods_match:
+        pos = methods_match.start()
+        return spec[:pos] + decls + spec[pos:]
+    return decls + spec
 
 
 def main() -> None:

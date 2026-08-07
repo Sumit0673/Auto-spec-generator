@@ -30,6 +30,9 @@ def lint_spec(spec_content: str, contract_code: str) -> list[LintError]:
     errors.extend(_check_invalid_require(spec_content))
     errors.extend(_check_invalid_require_invariant(spec_content))
     errors.extend(_check_bare_solidity_env(spec_content))
+    errors.extend(_check_invariant_brace_body(spec_content))
+    errors.extend(_check_env_in_invariant(spec_content))
+    errors.extend(_check_undeclared_ghost(spec_content))
     return errors
 
 
@@ -240,6 +243,76 @@ def _check_uncalled_getters(spec: str, contract_code: str) -> list[LintError]:
                 f"Public variable getter `{var_name}` is referenced as a variable. In CVL, call it as a function `{var_name}()`",
             ))
     return errors
+
+
+def _check_invariant_brace_body(spec: str) -> list[LintError]:
+    """Check 11: invariant body cannot be a brace block — it is a pure expression.
+
+    LLMs frequently write `invariant foo() { expr; }` copying Solidity function
+    syntax. CVL requires `invariant foo() expr;` — no braces around the body.
+    """
+    errors = []
+    for i, line in enumerate(spec.splitlines(), 1):
+        if re.search(r'\binvariant\s+\w+\s*\([^)]*\)\s*\{', line):
+            errors.append(LintError(
+                "invariant_brace_body",
+                (
+                    f"Invariant in `{line.strip()}` has a brace block `{{...}}`. "
+                    "CVL invariant body is a pure expression, not a function body. "
+                    "Write `invariant name(params) <expression>;` with no braces around the body."
+                ),
+                line=i,
+            ))
+    return errors
+
+
+def _check_env_in_invariant(spec: str) -> list[LintError]:
+    """Check 12: e.msg.* / e.block.* inside invariant bodies are illegal.
+
+    CVL invariants are pure state expressions — they have no env scope.
+    `env e` cannot be declared inside them and `e.msg.sender` etc. are
+    illegal. Either remove the comparison or rewrite the property as a rule.
+    """
+    errors = []
+    for m in re.finditer(r'\binvariant\s+(\w+)\s*\([^)]*\)\s*', spec):
+        inv_name = m.group(1)
+        rest = spec[m.end():]
+        body_end = re.search(r'\n(?:rule|invariant)\s', rest)
+        body = rest[:body_end.start()] if body_end else rest
+        if re.search(r'\be\.(?:msg|block|tx)\.', body):
+            errors.append(LintError(
+                "env_in_invariant",
+                (
+                    f"Invariant `{inv_name}` references `e.msg.*`/`e.block.*`. "
+                    "CVL invariants are pure state expressions with no env scope — "
+                    "`env e` cannot be declared inside them. "
+                    "Remove the env-dependent comparison or rewrite the property as a `rule`."
+                ),
+            ))
+    return errors
+
+
+def _check_undeclared_ghost(spec: str) -> list[LintError]:
+    """Check 13: ghost-named variables referenced but never declared.
+
+    Catches the pattern where the LLM writes `ghostTotalDeposits` in an
+    invariant/rule body without a corresponding `ghost uint256 ghostTotalDeposits;`
+    declaration. Heuristic: any identifier starting with `ghost` that is not
+    covered by a ghost declaration in the spec.
+    """
+    declared: set[str] = set(re.findall(r'\bghost\s+\S+\s+(\w+)\s*[;{]', spec))
+    used: set[str] = set(re.findall(r'\b(ghost\w+)\b', spec))
+    return [
+        LintError(
+            "undeclared_ghost",
+            (
+                f"Ghost variable `{name}` is used but never declared. "
+                f"Add `ghost uint256 {name};` (or the correct type) "
+                "before the methods block, and add an `init_state` axiom if needed."
+            ),
+        )
+        for name in sorted(used - declared)
+    ]
 
 
 def format_lint_errors(errors: list[LintError]) -> str:

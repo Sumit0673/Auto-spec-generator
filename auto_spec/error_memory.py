@@ -7,10 +7,34 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import sqlite3
 import time
 import uuid
 from pathlib import Path
+
+# ── Error generalization ──────────────────────────────────────────────────────
+# Strip position/name specifics before storing so the same mistake on a
+# different line or with a different identifier still matches as a known error.
+_GENERALIZATIONS: list[tuple[re.Pattern, str]] = [
+    # "Line 189 `invariant foo() {` -> Error: msg"  →  "msg"
+    (re.compile(r'^Line \d+\s+`[^`]*`\s*->\s*(?:Error:\s*)?'), ''),
+    # "Variable `ghostXxx` has not been declared"  →  generic
+    (re.compile(r"Variable `\w+` has not been declared"),
+     "Variable has not been declared — declare all variables "
+     "(e.g. `env e;` inside rules, `ghost uint256 name;` before methods block) before use"),
+    # Strip standalone "Error: " prefix
+    (re.compile(r'^Error:\s*'), ''),
+    # Strip line references embedded in messages
+    (re.compile(r'\bline \d+\b', re.I), ''),
+]
+
+
+def _generalize(msg: str) -> str:
+    """Strip position/identifier specifics; keep the semantic error pattern."""
+    for pat, repl in _GENERALIZATIONS:
+        msg = pat.sub(repl, msg)
+    return msg.strip()
 
 
 class ErrorMemory:
@@ -38,9 +62,18 @@ class ErrorMemory:
         return uuid.uuid4().hex[:12]
 
     def record(self, contract_hash: str, run_id: str, attempt: int, spec: str, errors: list[str]):
+        # Generalize + deduplicate before storing — line-specific messages are useless
+        # across runs; we want semantic patterns the repair prompt can act on.
+        seen: set[str] = set()
+        generalized: list[str] = []
+        for e in errors:
+            g = _generalize(e)
+            if g and g not in seen:
+                seen.add(g)
+                generalized.append(g)
         self.conn.execute(
             "INSERT INTO error_history VALUES (?,?,?,?,?,?)",
-            (contract_hash, run_id, attempt, spec, json.dumps(errors), time.time()),
+            (contract_hash, run_id, attempt, spec, json.dumps(generalized), time.time()),
         )
         self.conn.commit()
 
