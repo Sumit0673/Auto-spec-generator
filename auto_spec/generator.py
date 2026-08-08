@@ -161,31 +161,40 @@ class SpecGenerator:
 
         if validate:
             prev_spec_hash = None
+            prev_feedback = None
             for attempt in range(max_repairs):
                 # Phase 2: run static linter before Certora
                 lint_errors = lint_spec(spec_content, contract_code)
                 if lint_errors:
-                    print(f"🔍 Linter caught {len(lint_errors)} issues (skipping Certora)")
+                    print(f"���🔍 Linter caught {len(lint_errors)} issues (skipping Certora)")
                     feedback_lines = [e.message for e in lint_errors]
                     error_source = "lint"
                 else:
-                    # Linter passed — run Certora
-                    result = validate_cvl(
-                        contract_path, validation_output_path, contract_name,
-                        validation_timeout, project.root, certora_config
-                    )
-                    if result.passed:
-                        print(f"✅ Certora compilation passed on attempt {attempt + 1}")
-                        self.error_memory.record(contract_hash, run_id, attempt, spec_content, [])
-                        output_path_for_passed = output_path + "_passed" if output_path is not None else "Output/" + contract_name + ".spec" 
-                        self.save_spec(spec_content, output_path_for_passed, attempt + 1)
-                        break
-                    if _is_environment_error(result.output):
-                        print(f"⚠️  Environment error (not a spec issue): {result.output[:200]}")
-                        print("   Fix your environment and re-run. Aborting repair loop.")
-                        break
-                    feedback_lines = _enrich_certora_feedback(result.output, spec_content)
-                    error_source = "certora"
+                    # Linter passed — try Certora parse first
+                    # Ensure spec file is up-to-date
+                    validation_output_path.write_text(spec_content)
+                    parse_ok, parse_output = _run_certora_parse(validation_output_path)
+                    if not parse_ok:
+                        feedback_lines = [parse_output]
+                        error_source = "parse"
+                    else:
+                        # Parse succeeded — run full Certora validation
+                        result = validate_cvl(
+                            contract_path, validation_output_path, contract_name,
+                            validation_timeout, project.root, certora_config
+                        )
+                        if result.passed:
+                            print(f"��✅ Certora compilation passed on attempt {attempt + 1}")
+                            self.error_memory.record(contract_hash, run_id, attempt, spec_content, [])
+                            output_path_for_passed = output_path + "_passed" if output_path is not None else "Output/" + contract_name + ".spec"
+                            self.save_spec(spec_content, output_path_for_passed, attempt + 1)
+                            break
+                        if _is_environment_error(result.output):
+                            print(f"��⚠��️  Environment error (not a spec issue): {result.output[:200]}")
+                            print("   Fix your environment and re-run. Aborting repair loop.")
+                            break
+                        feedback_lines = _enrich_certora_feedback(result.output, spec_content)
+                        error_source = "certora"
 
                 # Record errors
                 self.error_memory.record(contract_hash, run_id, attempt, spec_content, feedback_lines)
@@ -202,12 +211,14 @@ class SpecGenerator:
                 )
                 spec_content = _clean_cvl_spec(spec_content, det_methods_block, contract_code)
 
-                # Short-circuit if LLM returned identical spec (stuck)
+                # Short-circuit if LLM returned identical spec and same feedback (stuck)
                 current_hash = hashlib.sha256(spec_content.encode()).hexdigest()
-                if current_hash == prev_spec_hash:
-                    print("⚠️  LLM returned identical spec — repair loop stuck. Aborting.")
+                current_feedback = tuple(feedback_lines)
+                if current_hash == prev_spec_hash and current_feedback == prev_feedback:
+                    print("��⚠��️  LLM returned identical spec and same feedback — repair loop stuck. Aborting.")
                     break
                 prev_spec_hash = current_hash
+                prev_feedback = current_feedback
 
                 validation_output_path = self.save_spec(spec_content, output_path, attempt + 1)
 
