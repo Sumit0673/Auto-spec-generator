@@ -1,0 +1,13 @@
+{
+    "topics": [
+        {
+            "name": "type_check",
+            "messages": [
+                {
+                    "message": "Error in spec file (SavingsVault_attempt0.spec:51:61): Syntax error: unexpected token near `@`",
+                    "location": []
+                }
+            ]
+        }
+    ]
+}

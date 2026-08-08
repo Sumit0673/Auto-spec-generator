@@ -1,0 +1,13 @@
+Saving last configuration file to .certora_internal/26_08_05_18_49_06_4043038615/run.conf
+contract name SavingsVault is the same as the file name and can be omitted from SavingsVault.sol:SavingsVault
+There is no TAC file. Going to script CertoraProver/certoraBuild.py to main_with_args()
+main build cache key computed based on {'files': ['SavingsVault.sol:SavingsVault'], 'package_version_for_build_cache': 'certora-cli 8.18.0', 'packages_path': 'node_modules', 'solc': 'solc', 'solc_allow_path': '/home/sumit-gupta/Auto-Spec/tests/fixtures', 'test_condition': 'True'}
+Creating dir /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_05_18_49_06_4043038615/.certora_config
+In /home/sumit-gupta/Auto-Spec/output/SavingsVault_attempt6.spec, found the imports: []
+copying spec file /home/sumit-gupta/Auto-Spec/output/SavingsVault_attempt6.spec to /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_05_18_49_06_4043038615/.certora_sources/.0_SavingsVault_attempt6.spec.spec
+writing /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_05_18_49_06_4043038615/.certora_verify.json
+Failed to run Certora Prover typechecker locally.
+Please check the errors below for problems in the specifications (.spec files) or the prover_args defined in the .conf file.
+[main] ERROR ALWAYS - Found errors in ../../output/SavingsVault_attempt6.spec:
+[main] ERROR ALWAYS - Error in spec file (SavingsVault_attempt6.spec:175:25): Since CVL 2, invariants must end with `;`
+build failed

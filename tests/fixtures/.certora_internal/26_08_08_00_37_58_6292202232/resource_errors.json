@@ -1,0 +1,21 @@
+{
+    "topics": [
+        {
+            "name": "type_check",
+            "messages": [
+                {
+                    "message": "Error in spec file (Access_attempt1.spec:66:46): Syntax error: unexpected token near `revert`",
+                    "location": []
+                },
+                {
+                    "message": "Error in spec file (Access_attempt1.spec:72:44): Syntax error: unexpected token near `revert`",
+                    "location": []
+                },
+                {
+                    "message": "Error in spec file (Access_attempt1.spec:75:80): Syntax error: unexpected token near `(`",
+                    "location": []
+                }
+            ]
+        }
+    ]
+}

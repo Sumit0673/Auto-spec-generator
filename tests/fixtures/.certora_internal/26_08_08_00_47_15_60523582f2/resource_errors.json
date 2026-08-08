@@ -1,0 +1,13 @@
+{
+    "topics": [
+        {
+            "name": "type_check",
+            "messages": [
+                {
+                    "message": "Error in spec file (Access_attempt5.spec:135:5): Syntax error: unexpected token near `env`",
+                    "location": []
+                }
+            ]
+        }
+    ]
+}

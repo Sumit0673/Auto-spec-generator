@@ -1,0 +1,21 @@
+{
+    "topics": [
+        {
+            "name": "type_check",
+            "messages": [
+                {
+                    "message": "Error in spec file (SimpleToken_attempt0.spec:65:25): Syntax error: unexpected token near `(`",
+                    "location": []
+                },
+                {
+                    "message": "Error in spec file (SimpleToken_attempt0.spec:82:25): Syntax error: unexpected token near `(`",
+                    "location": []
+                },
+                {
+                    "message": "Error in spec file (SimpleToken_attempt0.spec:91:25): Syntax error: unexpected token near `(`",
+                    "location": []
+                }
+            ]
+        }
+    ]
+}

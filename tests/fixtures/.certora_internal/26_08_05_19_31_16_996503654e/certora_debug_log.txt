@@ -1,0 +1,76 @@
+Saving last configuration file to .certora_internal/26_08_05_19_31_16_996503654e/run.conf
+contract name SavingsVault is the same as the file name and can be omitted from SavingsVault.sol:SavingsVault
+There is no TAC file. Going to script CertoraProver/certoraBuild.py to main_with_args()
+main build cache key computed based on {'files': ['SavingsVault.sol:SavingsVault'], 'package_version_for_build_cache': 'certora-cli 8.18.0', 'packages_path': 'node_modules', 'solc': 'solc', 'solc_allow_path': '/home/sumit-gupta/Auto-Spec/tests/fixtures', 'test_condition': 'True'}
+Creating dir /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_05_19_31_16_996503654e/.certora_config
+In /home/sumit-gupta/Auto-Spec/output/SavingsVault_attempt2.spec, found the imports: []
+copying spec file /home/sumit-gupta/Auto-Spec/output/SavingsVault_attempt2.spec to /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_05_19_31_16_996503654e/.certora_sources/.0_SavingsVault_attempt2.spec.spec
+writing /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_05_19_31_16_996503654e/.certora_verify.json
+
+building file SavingsVault.sol
+Running cmd solc --version
+stdout, stderr = .certora_internal/26_08_05_19_31_16_996503654e/.certora_config/version_check_solc.stdout, .certora_internal/26_08_05_19_31_16_996503654e/.certora_config/version_check_solc.stderr
+Exitcode 0
+Solc run solc --version time: 0.3154
+Running cmd solc -o ".certora_internal/26_08_05_19_31_16_996503654e/.certora_config/SavingsVault.sol_0/" --overwrite --allow-paths "/home/sumit-gupta/Auto-Spec/tests/fixtures",. --standard-json
+stdout, stderr = .certora_internal/26_08_05_19_31_16_996503654e/.certora_config/SavingsVault.sol_0.standard.stdout.json, .certora_internal/26_08_05_19_31_16_996503654e/.certora_config/SavingsVault.sol_0.standard.stderr.json
+Exitcode 0
+Solc run solc -o ".certora_internal/26_08_05_19_31_16_996503654e/.certora_config/SavingsVault.sol_0/" --overwrite --allow-paths "/home/sumit-gupta/Auto-Spec/tests/fixtures",. --standard-json time: 0.3602
+reading standard json data from .certora_internal/26_08_05_19_31_16_996503654e/.certora_config/SavingsVault.sol_0.standard.stdout.json
+available keys: dict_keys(['/home/sumit-gupta/Auto-Spec/tests/fixtures/SavingsVault.sol'])
+collecting worklist for /home/sumit-gupta/Auto-Spec/tests/fixtures/SavingsVault.sol
+Processing dependencies from file /home/sumit-gupta/Auto-Spec/tests/fixtures/SavingsVault.sol
+available keys: dict_keys(['/home/sumit-gupta/Auto-Spec/tests/fixtures/SavingsVault.sol'])
+Contracts in SavingsVault.sol_0 (file SavingsVault.sol): ['SavingsVault']
+Contracts with their chosen addresses: [(274184521717934524641157099916833587200, '/home/sumit-gupta/Auto-Spec/tests/fixtures/SavingsVault.sol:SavingsVault')]
+Report source list={0: 'SavingsVault.sol'}
+Finding report source file, abs path /home/sumit-gupta/Auto-Spec/tests/fixtures/SavingsVault.sol relative to /home/sumit-gupta/Auto-Spec/tests/fixtures
+Working on contract SavingsVault
+Working on contract SavingsVault
+For contracts of primary SavingsVault
+finding primary contract address of /home/sumit-gupta/Auto-Spec/tests/fixtures/SavingsVault.sol:SavingsVault in [(274184521717934524641157099916833587200, '/home/sumit-gupta/Auto-Spec/tests/fixtures/SavingsVault.sol:SavingsVault')]
+Contracts in SDC SavingsVault.sol_0: ['SavingsVault']
+Building source tree
+Copying /home/sumit-gupta/Auto-Spec/tests/fixtures/SavingsVault.sol to .certora_internal/26_08_05_19_31_16_996503654e/.certora_sources/tests/fixtures/SavingsVault.sol
+Copying /home/sumit-gupta/Auto-Spec/output/SavingsVault_attempt2.spec to .certora_internal/26_08_05_19_31_16_996503654e/.certora_sources/output/SavingsVault_attempt2.spec
+Report source list={0: 'tests/fixtures/SavingsVault.sol'}
+Backing up current .certora_sources to .certora_internal/26_08_05_19_31_16_996503654e/.certora_sources/.pre_autofinders.0
+Running cmd solc -o ".certora_internal/26_08_05_19_31_16_996503654e/.certora_config/SavingsVault.sol_0/" --overwrite --allow-paths "/home/sumit-gupta/Auto-Spec/tests/fixtures",. --standard-json
+stdout, stderr = .certora_internal/26_08_05_19_31_16_996503654e/.certora_config/SavingsVault.sol_0.standard.stdout.json, .certora_internal/26_08_05_19_31_16_996503654e/.certora_config/SavingsVault.sol_0.standard.stderr.json
+Exitcode 0
+Solc run solc -o ".certora_internal/26_08_05_19_31_16_996503654e/.certora_config/SavingsVault.sol_0/" --overwrite --allow-paths "/home/sumit-gupta/Auto-Spec/tests/fixtures",. --standard-json time: 0.3592
+reading standard json data from .certora_internal/26_08_05_19_31_16_996503654e/.certora_config/SavingsVault.sol_0.standard.stdout.json
+available keys: dict_keys(['/home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_05_19_31_16_996503654e/.certora_sources/tests/fixtures/SavingsVault.sol'])
+collecting worklist for /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_05_19_31_16_996503654e/.certora_sources/tests/fixtures/SavingsVault.sol
+Processing dependencies from file /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_05_19_31_16_996503654e/.certora_sources/tests/fixtures/SavingsVault.sol
+available keys: dict_keys(['/home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_05_19_31_16_996503654e/.certora_sources/tests/fixtures/SavingsVault.sol'])
+Contracts in SavingsVault.sol_0 (file .certora_internal/26_08_05_19_31_16_996503654e/.certora_sources/tests/fixtures/SavingsVault.sol): ['SavingsVault']
+Contracts with their chosen addresses: [(274184521717934524641157099916833587201, '/home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_05_19_31_16_996503654e/.certora_sources/tests/fixtures/SavingsVault.sol:SavingsVault')]
+Report source list={0: 'tests/fixtures/SavingsVault.sol'}
+Finding report source file, abs path /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_05_19_31_16_996503654e/.certora_sources/tests/fixtures/SavingsVault.sol relative to .certora_internal/26_08_05_19_31_16_996503654e/.certora_sources/tests/fixtures
+Working on contract SavingsVault
+Working on contract SavingsVault
+For contracts of primary SavingsVault
+finding primary contract address of /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_05_19_31_16_996503654e/.certora_sources/tests/fixtures/SavingsVault.sol:SavingsVault in [(274184521717934524641157099916833587201, '/home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_05_19_31_16_996503654e/.certora_sources/tests/fixtures/SavingsVault.sol:SavingsVault')]
+Contracts in SDC SavingsVault.sol_0: ['SavingsVault']
+Backing up instrumented .certora_sources to .certora_internal/26_08_05_19_31_16_996503654e/.certora_sources/.post_autofinders.0
+Rolling back .certora_sources to .certora_internal/26_08_05_19_31_16_996503654e/.certora_sources/.pre_autofinders.0 version
+Libraries to add = []
+writing file /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_05_19_31_16_996503654e/.certora_build.json
+writing file /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_05_19_31_16_996503654e/.certora_build_output_props.json
+writing /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_05_19_31_16_996503654e/.certora_verify.json
+Failed to run Certora Prover typechecker locally.
+Please check the errors below for problems in the specifications (.spec files) or the prover_args defined in the .conf file.
+[main] ERROR ALWAYS - Found errors in output/SavingsVault_attempt2.spec:
+[main] ERROR ALWAYS - Error in spec file (SavingsVault_attempt2.spec:19:5): could not type expression "deposit()", message: Missing environment parameter to non-envfree function SavingsVault.deposit()
+[main] ERROR ALWAYS - Error in spec file (SavingsVault_attempt2.spec:34:5): could not type expression "deposit()", message: Missing environment parameter to non-envfree function SavingsVault.deposit()
+[main] ERROR ALWAYS - Error in spec file (SavingsVault_attempt2.spec:48:5): could not type expression "deposit()", message: Missing environment parameter to non-envfree function SavingsVault.deposit()
+[main] ERROR ALWAYS - Error in spec file (SavingsVault_attempt2.spec:56:12): Literal value `0` cannot be assigned to type `calldataarg`.
+[main] ERROR ALWAYS - Error in spec file (SavingsVault_attempt2.spec:99:20): could not type expression "args", message: Expected operand of array dereference to be of array or ghost mapping type, instead got: calldataarg
+[main] ERROR ALWAYS - Error in spec file (SavingsVault_attempt2.spec:118:14): You may not access the return value of a call to a `method` variable.
+[main] ERROR ALWAYS - Error in spec file (SavingsVault_attempt2.spec:125:20): could not type expression "args", message: Expected operand of array dereference to be of array or ghost mapping type, instead got: calldataarg
+[main] ERROR ALWAYS - Error in spec file (SavingsVault_attempt2.spec:126:5): assigning 'SavingsVault.deposits(user) + 1' (of type mathint) to type uint256 may cause overflow. Consider declaring [amount] with type mathint
+[main] ERROR ALWAYS - Error in spec file (SavingsVault_attempt2.spec:128:14): You may not access the return value of a call to a `method` variable.
+[main] ERROR ALWAYS - Error in spec file (SavingsVault_attempt2.spec:149:5): assigning 'SavingsVault.unlockTime() - 1' (of type mathint) to type uint256 may cause overflow. Consider declaring [invalidUnlockTime] with type mathint
+[main] ERROR ALWAYS - Error in spec file (SavingsVault_attempt2.spec:166:23): could not type expression "balanceOf(user)", message: Missing environment parameter to non-envfree function SavingsVault.balanceOf(address user) returns (uint256)
+[main] ERROR ALWAYS - Error in spec file (SavingsVault_attempt2.spec:179:23): could not type expression "balanceOf(user)", message: Missing environment parameter to non-envfree function SavingsVault.balanceOf(address user) returns (uint256)

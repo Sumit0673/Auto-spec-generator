@@ -1,0 +1,779 @@
+{
+    "SavingsVault_00000000ce4604a0000000000000000000000001": {
+        "contracts": [
+            {
+                "address": "00000000ce4604a0000000000000000000000001",
+                "allMethods": [
+                    {
+                        "contractName": "SavingsVault",
+                        "fullArgs": [
+                            {
+                                "location": "stack",
+                                "typeDesc": {
+                                    "primitiveName": "address",
+                                    "type": "Primitive"
+                                }
+                            }
+                        ],
+                        "isLibrary": false,
+                        "name": "balanceOf",
+                        "notpayable": true,
+                        "originalFile": "tests/fixtures/SavingsVault.sol",
+                        "paramNames": [
+                            "user"
+                        ],
+                        "returns": [
+                            {
+                                "location": "stack",
+                                "typeDesc": {
+                                    "primitiveName": "uint256",
+                                    "type": "Primitive"
+                                }
+                            }
+                        ],
+                        "sighash": "70a08231",
+                        "sourceBytes": {
+                            "begin": 1307,
+                            "size": 103
+                        },
+                        "stateMutability": "view",
+                        "visibility": "external",
+                        "vyper_metadata": null
+                    },
+                    {
+                        "contractName": "SavingsVault",
+                        "fullArgs": [
+                            {
+                                "location": "stack",
+                                "typeDesc": {
+                                    "primitiveName": "uint256",
+                                    "type": "Primitive"
+                                }
+                            }
+                        ],
+                        "isLibrary": false,
+                        "name": "constructor",
+                        "notpayable": true,
+                        "originalFile": "tests/fixtures/SavingsVault.sol",
+                        "paramNames": [
+                            "_unlockTime"
+                        ],
+                        "returns": [],
+                        "sighash": "0",
+                        "sourceBytes": {
+                            "begin": 324,
+                            "size": 102
+                        },
+                        "stateMutability": "nonpayable",
+                        "visibility": "public",
+                        "vyper_metadata": null
+                    },
+                    {
+                        "contractName": "SavingsVault",
+                        "fullArgs": [],
+                        "isLibrary": false,
+                        "name": "deposit",
+                        "notpayable": false,
+                        "originalFile": "tests/fixtures/SavingsVault.sol",
+                        "paramNames": [],
+                        "returns": [],
+                        "sighash": "d0e30db0",
+                        "sourceBytes": {
+                            "begin": 432,
+                            "size": 171
+                        },
+                        "stateMutability": "payable",
+                        "visibility": "external",
+                        "vyper_metadata": null
+                    },
+                    {
+                        "contractName": "SavingsVault",
+                        "fullArgs": [
+                            {
+                                "location": "stack",
+                                "typeDesc": {
+                                    "primitiveName": "address",
+                                    "type": "Primitive"
+                                }
+                            }
+                        ],
+                        "isLibrary": false,
+                        "name": "deposits",
+                        "notpayable": true,
+                        "originalFile": "tests/fixtures/SavingsVault.sol",
+                        "paramNames": [],
+                        "returns": [
+                            {
+                                "location": "stack",
+                                "typeDesc": {
+                                    "primitiveName": "uint256",
+                                    "type": "Primitive"
+                                }
+                            }
+                        ],
+                        "sighash": "fc7e286d",
+                        "sourceBytes": {
+                            "begin": 178,
+                            "size": 43
+                        },
+                        "stateMutability": "view",
+                        "visibility": "external",
+                        "vyper_metadata": null
+                    },
+                    {
+                        "contractName": "SavingsVault",
+                        "fullArgs": [
+                            {
+                                "location": "stack",
+                                "typeDesc": {
+                                    "primitiveName": "address",
+                                    "type": "Primitive"
+                                }
+                            }
+                        ],
+                        "isLibrary": false,
+                        "name": "emergencyWithdraw",
+                        "notpayable": true,
+                        "originalFile": "tests/fixtures/SavingsVault.sol",
+                        "paramNames": [
+                            "user"
+                        ],
+                        "returns": [],
+                        "sighash": "6ff1c9bc",
+                        "sourceBytes": {
+                            "begin": 917,
+                            "size": 212
+                        },
+                        "stateMutability": "nonpayable",
+                        "visibility": "external",
+                        "vyper_metadata": null
+                    },
+                    {
+                        "contractName": "SavingsVault",
+                        "fullArgs": [
+                            {
+                                "location": "stack",
+                                "typeDesc": {
+                                    "primitiveName": "uint256",
+                                    "type": "Primitive"
+                                }
+                            }
+                        ],
+                        "isLibrary": false,
+                        "name": "extendLock",
+                        "notpayable": true,
+                        "originalFile": "tests/fixtures/SavingsVault.sol",
+                        "paramNames": [
+                            "newUnlockTime"
+                        ],
+                        "returns": [],
+                        "sighash": "44ee3a1c",
+                        "sourceBytes": {
+                            "begin": 1135,
+                            "size": 166
+                        },
+                        "stateMutability": "nonpayable",
+                        "visibility": "external",
+                        "vyper_metadata": null
+                    },
+                    {
+                        "contractName": "SavingsVault",
+                        "fullArgs": [],
+                        "isLibrary": false,
+                        "name": "owner",
+                        "notpayable": true,
+                        "originalFile": "tests/fixtures/SavingsVault.sol",
+                        "paramNames": [],
+                        "returns": [
+                            {
+                                "location": "stack",
+                                "typeDesc": {
+                                    "primitiveName": "address",
+                                    "type": "Primitive"
+                                }
+                            }
+                        ],
+                        "sighash": "8da5cb5b",
+                        "sourceBytes": {
+                            "begin": 86,
+                            "size": 20
+                        },
+                        "stateMutability": "view",
+                        "visibility": "external",
+                        "vyper_metadata": null
+                    },
+                    {
+                        "contractName": "SavingsVault",
+                        "fullArgs": [],
+                        "isLibrary": false,
+                        "name": "totalDeposits",
+                        "notpayable": true,
+                        "originalFile": "tests/fixtures/SavingsVault.sol",
+                        "paramNames": [],
+                        "returns": [
+                            {
+                                "location": "stack",
+                                "typeDesc": {
+                                    "primitiveName": "uint256",
+                                    "type": "Primitive"
+                                }
+                            }
+                        ],
+                        "sighash": "7d882097",
+                        "sourceBytes": {
+                            "begin": 143,
+                            "size": 28
+                        },
+                        "stateMutability": "view",
+                        "visibility": "external",
+                        "vyper_metadata": null
+                    },
+                    {
+                        "contractName": "SavingsVault",
+                        "fullArgs": [],
+                        "isLibrary": false,
+                        "name": "unlockTime",
+                        "notpayable": true,
+                        "originalFile": "tests/fixtures/SavingsVault.sol",
+                        "paramNames": [],
+                        "returns": [
+                            {
+                                "location": "stack",
+                                "typeDesc": {
+                                    "primitiveName": "uint256",
+                                    "type": "Primitive"
+                                }
+                            }
+                        ],
+                        "sighash": "251c1aa3",
+                        "sourceBytes": {
+                            "begin": 112,
+                            "size": 25
+                        },
+                        "stateMutability": "view",
+                        "visibility": "external",
+                        "vyper_metadata": null
+                    },
+                    {
+                        "contractName": "SavingsVault",
+                        "fullArgs": [
+                            {
+                                "location": "stack",
+                                "typeDesc": {
+                                    "primitiveName": "uint256",
+                                    "type": "Primitive"
+                                }
+                            }
+                        ],
+                        "isLibrary": false,
+                        "name": "withdraw",
+                        "notpayable": true,
+                        "originalFile": "tests/fixtures/SavingsVault.sol",
+                        "paramNames": [
+                            "amount"
+                        ],
+                        "returns": [],
+                        "sighash": "2e1a7d4d",
+                        "sourceBytes": {
+                            "begin": 609,
+                            "size": 302
+                        },
+                        "stateMutability": "nonpayable",
+                        "visibility": "external",
+                        "vyper_metadata": null
+                    }
+                ],
+                "bytecode": "608060405260043610610085575f3560e01c806370a082311161005857806370a082311461012b5780637d882097146101675780638da5cb5b14610191578063d0e30db0146101bb578063fc7e286d146101c557610085565b8063251c1aa3146100895780632e1a7d4d146100b357806344ee3a1c146100db5780636ff1c9bc14610103575b5f80fd5b348015610094575f80fd5b5061009d610201565b6040516100aa9190610756565b60405180910390f35b3480156100be575f80fd5b506100d960048036038101906100d4919061079d565b610207565b005b3480156100e6575f80fd5b5061010160048036038101906100fc919061079d565b61037e565b005b34801561010e575f80fd5b5061012960048036038101906101249190610822565b610459565b005b348015610136575f80fd5b50610151600480360381019061014c9190610822565b61060b565b60405161015e9190610756565b60405180910390f35b348015610172575f80fd5b5061017b610651565b6040516101889190610756565b60405180910390f35b34801561019c575f80fd5b506101a5610657565b6040516101b2919061085c565b60405180910390f35b6101c361067a565b005b3480156101d0575f80fd5b506101eb60048036038101906101e69190610822565b610729565b6040516101f89190610756565b60405180910390f35b60015481565b60015442101561024c576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401610243906108cf565b60405180910390fd5b8060035f3373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020015f205410156102cc576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004016102c390610937565b60405180910390fd5b8060035f3373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020015f205f8282546103189190610982565b925050819055508060025f8282546103309190610982565b925050819055503373ffffffffffffffffffffffffffffffffffffffff166108fc8290811502906040515f60405180830381858888f1935050505015801561037a573d5f803e3d5ffd5b5050565b5f8054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff161461040b576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401610402906109ff565b60405180910390fd5b600154811161044f576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040161044690610a67565b60405180910390fd5b8060018190555050565b5f8054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff16146104e6576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004016104dd906109ff565b60405180910390fd5b5f60035f8373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020015f20549050807fffffff6e4604afefe123321beef1b02fffffffffffffffffffffffff00000001525f60035f8473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020015f20819055508060025f82825461059d9190610982565b925050819055505f8054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff166108fc8290811502906040515f60405180830381858888f19350505050158015610606573d5f803e3d5ffd5b505050565b5f60035f8373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020015f20549050919050565b60025481565b5f8054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b5f34116106bc576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004016106b390610acf565b60405180910390fd5b3460035f3373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020015f205f8282546107089190610aed565b925050819055503460025f8282546107209190610aed565b92505081905550565b6003602052805f5260405f205f915090505481565b5f819050919050565b6107508161073e565b82525050565b5f6020820190506107695f830184610747565b92915050565b5f80fd5b61077c8161073e565b8114610786575f80fd5b50565b5f8135905061079781610773565b92915050565b5f602082840312156107b2576107b161076f565b5b5f6107bf84828501610789565b91505092915050565b5f73ffffffffffffffffffffffffffffffffffffffff82169050919050565b5f6107f1826107c8565b9050919050565b610801816107e7565b811461080b575f80fd5b50565b5f8135905061081c816107f8565b92915050565b5f602082840312156108375761083661076f565b5b5f6108448482850161080e565b91505092915050565b610856816107e7565b82525050565b5f60208201905061086f5f83018461084d565b92915050565b5f82825260208201905092915050565b7f4c6f636b656400000000000000000000000000000000000000000000000000005f82015250565b5f6108b9600683610875565b91506108c482610885565b602082019050919050565b5f6020820190508181035f8301526108e6816108ad565b9050919050565b7f496e73756666696369656e742062616c616e63650000000000000000000000005f82015250565b5f610921601483610875565b915061092c826108ed565b602082019050919050565b5f6020820190508181035f83015261094e81610915565b9050919050565b7f4e487b71000000000000000000000000000000000000000000000000000000005f52601160045260245ffd5b5f61098c8261073e565b91506109978361073e565b92508282039050818111156109af576109ae610955565b5b92915050565b7f4e6f74206f776e657200000000000000000000000000000000000000000000005f82015250565b5f6109e9600983610875565b91506109f4826109b5565b602082019050919050565b5f6020820190508181035f830152610a16816109dd565b9050919050565b7f496e76616c69642074696d6500000000000000000000000000000000000000005f82015250565b5f610a51600c83610875565b9150610a5c82610a1d565b602082019050919050565b5f6020820190508181035f830152610a7e81610a45565b9050919050565b7f5a65726f206465706f73697400000000000000000000000000000000000000005f82015250565b5f610ab9600c83610875565b9150610ac482610a85565b602082019050919050565b5f6020820190508181035f830152610ae681610aad565b9050919050565b5f610af78261073e565b9150610b028361073e565b9250828201905080821115610b1a57610b19610955565b5b9291505056fea2646970667358221220dd0eb10fe4e5c3b6d1df6dc7c5c8e5123c93fbeafafa31e5a95219221c9002fb64736f6c63430008140033",
+                "compilerName": "solc",
+                "compilerParameters": {
+                    "optimizerOn": false,
+                    "optimizerRuns": null,
+                    "type": "SolcParameters",
+                    "viaIR": false
+                },
+                "compilerVersion": "0.8.20",
+                "constructorBytecode": "608060405234801561000f575f80fd5b50604051610c42380380610c42833981810160405281019061003191906100b4565b335f806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555080600181905550506100df565b5f80fd5b5f819050919050565b61009381610081565b811461009d575f80fd5b50565b5f815190506100ae8161008a565b92915050565b5f602082840312156100c9576100c861007d565b5b5f6100d6848285016100a0565b91505092915050565b610b56806100ec5f395ff3fe608060405260043610610085575f3560e01c806370a082311161005857806370a082311461012b5780637d882097146101675780638da5cb5b14610191578063d0e30db0146101bb578063fc7e286d146101c557610085565b8063251c1aa3146100895780632e1a7d4d146100b357806344ee3a1c146100db5780636ff1c9bc14610103575b5f80fd5b348015610094575f80fd5b5061009d610201565b6040516100aa9190610756565b60405180910390f35b3480156100be575f80fd5b506100d960048036038101906100d4919061079d565b610207565b005b3480156100e6575f80fd5b5061010160048036038101906100fc919061079d565b61037e565b005b34801561010e575f80fd5b5061012960048036038101906101249190610822565b610459565b005b348015610136575f80fd5b50610151600480360381019061014c9190610822565b61060b565b60405161015e9190610756565b60405180910390f35b348015610172575f80fd5b5061017b610651565b6040516101889190610756565b60405180910390f35b34801561019c575f80fd5b506101a5610657565b6040516101b2919061085c565b60405180910390f35b6101c361067a565b005b3480156101d0575f80fd5b506101eb60048036038101906101e69190610822565b610729565b6040516101f89190610756565b60405180910390f35b60015481565b60015442101561024c576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401610243906108cf565b60405180910390fd5b8060035f3373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020015f205410156102cc576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004016102c390610937565b60405180910390fd5b8060035f3373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020015f205f8282546103189190610982565b925050819055508060025f8282546103309190610982565b925050819055503373ffffffffffffffffffffffffffffffffffffffff166108fc8290811502906040515f60405180830381858888f1935050505015801561037a573d5f803e3d5ffd5b5050565b5f8054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff161461040b576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401610402906109ff565b60405180910390fd5b600154811161044f576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040161044690610a67565b60405180910390fd5b8060018190555050565b5f8054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff16146104e6576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004016104dd906109ff565b60405180910390fd5b5f60035f8373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020015f20549050807fffffff6e4604afefe123321beef1b02fffffffffffffffffffffffff00000001525f60035f8473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020015f20819055508060025f82825461059d9190610982565b925050819055505f8054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff166108fc8290811502906040515f60405180830381858888f19350505050158015610606573d5f803e3d5ffd5b505050565b5f60035f8373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020015f20549050919050565b60025481565b5f8054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b5f34116106bc576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004016106b390610acf565b60405180910390fd5b3460035f3373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020015f205f8282546107089190610aed565b925050819055503460025f8282546107209190610aed565b92505081905550565b6003602052805f5260405f205f915090505481565b5f819050919050565b6107508161073e565b82525050565b5f6020820190506107695f830184610747565b92915050565b5f80fd5b61077c8161073e565b8114610786575f80fd5b50565b5f8135905061079781610773565b92915050565b5f602082840312156107b2576107b161076f565b5b5f6107bf84828501610789565b91505092915050565b5f73ffffffffffffffffffffffffffffffffffffffff82169050919050565b5f6107f1826107c8565b9050919050565b610801816107e7565b811461080b575f80fd5b50565b5f8135905061081c816107f8565b92915050565b5f602082840312156108375761083661076f565b5b5f6108448482850161080e565b91505092915050565b610856816107e7565b82525050565b5f60208201905061086f5f83018461084d565b92915050565b5f82825260208201905092915050565b7f4c6f636b656400000000000000000000000000000000000000000000000000005f82015250565b5f6108b9600683610875565b91506108c482610885565b602082019050919050565b5f6020820190508181035f8301526108e6816108ad565b9050919050565b7f496e73756666696369656e742062616c616e63650000000000000000000000005f82015250565b5f610921601483610875565b915061092c826108ed565b602082019050919050565b5f6020820190508181035f83015261094e81610915565b9050919050565b7f4e487b71000000000000000000000000000000000000000000000000000000005f52601160045260245ffd5b5f61098c8261073e565b91506109978361073e565b92508282039050818111156109af576109ae610955565b5b92915050565b7f4e6f74206f776e657200000000000000000000000000000000000000000000005f82015250565b5f6109e9600983610875565b91506109f4826109b5565b602082019050919050565b5f6020820190508181035f830152610a16816109dd565b9050919050565b7f496e76616c69642074696d6500000000000000000000000000000000000000005f82015250565b5f610a51600c83610875565b9150610a5c82610a1d565b602082019050919050565b5f6020820190508181035f830152610a7e81610a45565b9050919050565b7f5a65726f206465706f73697400000000000000000000000000000000000000005f82015250565b5f610ab9600c83610875565b9150610ac482610a85565b602082019050919050565b5f6020820190508181035f830152610ae681610aad565b9050919050565b5f610af78261073e565b9150610b028361073e565b9250828201905080821115610b1a57610b19610955565b5b9291505056fea2646970667358221220dd0eb10fe4e5c3b6d1df6dc7c5c8e5123c93fbeafafa31e5a95219221c9002fb64736f6c63430008140033",
+                "constructorSrcmap": "58:1461:0:-:0;;;324:102;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;375:10;367:5;;:18;;;;;;;;;;;;;;;;;;408:11;395:10;:24;;;;324:102;58:1461;;88:117:1;197:1;194;187:12;334:77;371:7;400:5;389:16;;334:77;;;:::o;417:122::-;490:24;508:5;490:24;:::i;:::-;483:5;480:35;470:63;;529:1;526;519:12;470:63;417:122;:::o;545:143::-;602:5;633:6;627:13;618:22;;649:33;676:5;649:33;:::i;:::-;545:143;;;;:::o;694:351::-;764:6;813:2;801:9;792:7;788:23;784:32;781:119;;;819:79;;:::i;:::-;781:119;939:1;964:64;1020:7;1011:6;1000:9;996:22;964:64;:::i;:::-;954:74;;910:128;694:351;;;;:::o;58:1461:0:-;;;;;;;",
+                "extensionContracts": [],
+                "file": "tests/fixtures/SavingsVault.sol",
+                "immutables": [],
+                "internalFuncs": [],
+                "internalFunctionHarnesses": {},
+                "internalFunctionStarts": [
+                    513,
+                    2434,
+                    2181,
+                    2693,
+                    519,
+                    1929,
+                    1547,
+                    2062,
+                    2325,
+                    1949,
+                    2589,
+                    2082,
+                    1833,
+                    2221,
+                    2733,
+                    2485,
+                    2359,
+                    1854,
+                    2629,
+                    1863,
+                    1992,
+                    2125,
+                    2255,
+                    2767,
+                    1617,
+                    2389,
+                    1878,
+                    1623,
+                    1113,
+                    2140,
+                    2525,
+                    2663,
+                    2023,
+                    2797,
+                    2285,
+                    1903,
+                    1907,
+                    2165,
+                    2040,
+                    1658,
+                    894,
+                    2559
+                ],
+                "internalFunctions": {},
+                "is_static_address": false,
+                "lang": "Solidity",
+                "localAssignments": {
+                    "1": {
+                        "lhs": "amount",
+                        "sourceLoc": {
+                            "begin": "987",
+                            "len": "31",
+                            "source": "0"
+                        }
+                    }
+                },
+                "methods": [
+                    {
+                        "contractName": "SavingsVault",
+                        "fullArgs": [
+                            {
+                                "location": "stack",
+                                "typeDesc": {
+                                    "primitiveName": "uint256",
+                                    "type": "Primitive"
+                                }
+                            }
+                        ],
+                        "isLibrary": false,
+                        "name": "constructor",
+                        "notpayable": true,
+                        "originalFile": "tests/fixtures/SavingsVault.sol",
+                        "paramNames": [
+                            "_unlockTime"
+                        ],
+                        "returns": [],
+                        "sighash": "0",
+                        "sourceBytes": {
+                            "begin": 324,
+                            "size": 102
+                        },
+                        "stateMutability": "nonpayable",
+                        "visibility": "public",
+                        "vyper_metadata": null
+                    },
+                    {
+                        "contractName": "SavingsVault",
+                        "fullArgs": [],
+                        "isLibrary": false,
+                        "name": "unlockTime",
+                        "notpayable": true,
+                        "originalFile": "tests/fixtures/SavingsVault.sol",
+                        "paramNames": [],
+                        "returns": [
+                            {
+                                "location": "stack",
+                                "typeDesc": {
+                                    "primitiveName": "uint256",
+                                    "type": "Primitive"
+                                }
+                            }
+                        ],
+                        "sighash": "251c1aa3",
+                        "sourceBytes": {
+                            "begin": 112,
+                            "size": 25
+                        },
+                        "stateMutability": "view",
+                        "visibility": "external",
+                        "vyper_metadata": null
+                    },
+                    {
+                        "contractName": "SavingsVault",
+                        "fullArgs": [
+                            {
+                                "location": "stack",
+                                "typeDesc": {
+                                    "primitiveName": "uint256",
+                                    "type": "Primitive"
+                                }
+                            }
+                        ],
+                        "isLibrary": false,
+                        "name": "withdraw",
+                        "notpayable": true,
+                        "originalFile": "tests/fixtures/SavingsVault.sol",
+                        "paramNames": [
+                            "amount"
+                        ],
+                        "returns": [],
+                        "sighash": "2e1a7d4d",
+                        "sourceBytes": {
+                            "begin": 609,
+                            "size": 302
+                        },
+                        "stateMutability": "nonpayable",
+                        "visibility": "external",
+                        "vyper_metadata": null
+                    },
+                    {
+                        "contractName": "SavingsVault",
+                        "fullArgs": [
+                            {
+                                "location": "stack",
+                                "typeDesc": {
+                                    "primitiveName": "address",
+                                    "type": "Primitive"
+                                }
+                            }
+                        ],
+                        "isLibrary": false,
+                        "name": "deposits",
+                        "notpayable": true,
+                        "originalFile": "tests/fixtures/SavingsVault.sol",
+                        "paramNames": [],
+                        "returns": [
+                            {
+                                "location": "stack",
+                                "typeDesc": {
+                                    "primitiveName": "uint256",
+                                    "type": "Primitive"
+                                }
+                            }
+                        ],
+                        "sighash": "fc7e286d",
+                        "sourceBytes": {
+                            "begin": 178,
+                            "size": 43
+                        },
+                        "stateMutability": "view",
+                        "visibility": "external",
+                        "vyper_metadata": null
+                    },
+                    {
+                        "contractName": "SavingsVault",
+                        "fullArgs": [],
+                        "isLibrary": false,
+                        "name": "deposit",
+                        "notpayable": false,
+                        "originalFile": "tests/fixtures/SavingsVault.sol",
+                        "paramNames": [],
+                        "returns": [],
+                        "sighash": "d0e30db0",
+                        "sourceBytes": {
+                            "begin": 432,
+                            "size": 171
+                        },
+                        "stateMutability": "payable",
+                        "visibility": "external",
+                        "vyper_metadata": null
+                    },
+                    {
+                        "contractName": "SavingsVault",
+                        "fullArgs": [
+                            {
+                                "location": "stack",
+                                "typeDesc": {
+                                    "primitiveName": "address",
+                                    "type": "Primitive"
+                                }
+                            }
+                        ],
+                        "isLibrary": false,
+                        "name": "balanceOf",
+                        "notpayable": true,
+                        "originalFile": "tests/fixtures/SavingsVault.sol",
+                        "paramNames": [
+                            "user"
+                        ],
+                        "returns": [
+                            {
+                                "location": "stack",
+                                "typeDesc": {
+                                    "primitiveName": "uint256",
+                                    "type": "Primitive"
+                                }
+                            }
+                        ],
+                        "sighash": "70a08231",
+                        "sourceBytes": {
+                            "begin": 1307,
+                            "size": 103
+                        },
+                        "stateMutability": "view",
+                        "visibility": "external",
+                        "vyper_metadata": null
+                    },
+                    {
+                        "contractName": "SavingsVault",
+                        "fullArgs": [],
+                        "isLibrary": false,
+                        "name": "totalDeposits",
+                        "notpayable": true,
+                        "originalFile": "tests/fixtures/SavingsVault.sol",
+                        "paramNames": [],
+                        "returns": [
+                            {
+                                "location": "stack",
+                                "typeDesc": {
+                                    "primitiveName": "uint256",
+                                    "type": "Primitive"
+                                }
+                            }
+                        ],
+                        "sighash": "7d882097",
+                        "sourceBytes": {
+                            "begin": 143,
+                            "size": 28
+                        },
+                        "stateMutability": "view",
+                        "visibility": "external",
+                        "vyper_metadata": null
+                    },
+                    {
+                        "contractName": "SavingsVault",
+                        "fullArgs": [
+                            {
+                                "location": "stack",
+                                "typeDesc": {
+                                    "primitiveName": "address",
+                                    "type": "Primitive"
+                                }
+                            }
+                        ],
+                        "isLibrary": false,
+                        "name": "emergencyWithdraw",
+                        "notpayable": true,
+                        "originalFile": "tests/fixtures/SavingsVault.sol",
+                        "paramNames": [
+                            "user"
+                        ],
+                        "returns": [],
+                        "sighash": "6ff1c9bc",
+                        "sourceBytes": {
+                            "begin": 917,
+                            "size": 212
+                        },
+                        "stateMutability": "nonpayable",
+                        "visibility": "external",
+                        "vyper_metadata": null
+                    },
+                    {
+                        "contractName": "SavingsVault",
+                        "fullArgs": [],
+                        "isLibrary": false,
+                        "name": "owner",
+                        "notpayable": true,
+                        "originalFile": "tests/fixtures/SavingsVault.sol",
+                        "paramNames": [],
+                        "returns": [
+                            {
+                                "location": "stack",
+                                "typeDesc": {
+                                    "primitiveName": "address",
+                                    "type": "Primitive"
+                                }
+                            }
+                        ],
+                        "sighash": "8da5cb5b",
+                        "sourceBytes": {
+                            "begin": 86,
+                            "size": 20
+                        },
+                        "stateMutability": "view",
+                        "visibility": "external",
+                        "vyper_metadata": null
+                    },
+                    {
+                        "contractName": "SavingsVault",
+                        "fullArgs": [
+                            {
+                                "location": "stack",
+                                "typeDesc": {
+                                    "primitiveName": "uint256",
+                                    "type": "Primitive"
+                                }
+                            }
+                        ],
+                        "isLibrary": false,
+                        "name": "extendLock",
+                        "notpayable": true,
+                        "originalFile": "tests/fixtures/SavingsVault.sol",
+                        "paramNames": [
+                            "newUnlockTime"
+                        ],
+                        "returns": [],
+                        "sighash": "44ee3a1c",
+                        "sourceBytes": {
+                            "begin": 1135,
+                            "size": 166
+                        },
+                        "stateMutability": "nonpayable",
+                        "visibility": "external",
+                        "vyper_metadata": null
+                    }
+                ],
+                "name": "SavingsVault",
+                "original_file": "tests/fixtures/SavingsVault.sol",
+                "solidityTypes": [],
+                "sourceBytes": {
+                    "begin": 58,
+                    "size": 1354
+                },
+                "srcmap": "58:1461:0:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;112:25;;;;;;;;;;;;;:::i;:::-;;;;;;;:::i;:::-;;;;;;;;609:302;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;;:::i;:::-;;1242:166;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;;:::i;:::-;;917:319;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;;:::i;:::-;;1414:103;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;;:::i;:::-;;;;;;;:::i;:::-;;;;;;;;143:28;;;;;;;;;;;;;:::i;:::-;;;;;;;:::i;:::-;;;;;;;;86:20;;;;;;;;;;;;;:::i;:::-;;;;;;;:::i;:::-;;;;;;;;432:171;;;:::i;:::-;;178:43;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;;:::i;:::-;;;;;;;:::i;:::-;;;;;;;;112:25;;;;:::o;609:302::-;689:10;;670:15;:29;;662:48;;;;;;;;;;;;:::i;:::-;;;;;;;;;752:6;728:8;:20;737:10;728:20;;;;;;;;;;;;;;;;:30;;720:63;;;;;;;;;;;;:::i;:::-;;;;;;;;;818:6;794:8;:20;803:10;794:20;;;;;;;;;;;;;;;;:30;;;;;;;:::i;:::-;;;;;;;;851:6;834:13;;:23;;;;;;;:::i;:::-;;;;;;;;876:10;868:28;;:36;897:6;868:36;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;609:302;:::o;1242:166::-;281:5;;;;;;;;;;267:19;;:10;:19;;;259:41;;;;;;;;;;;;:::i;:::-;;;;;;;;;1338:10:::1;;1322:13;:26;1314:51;;;;;;;;;;;;:::i;:::-;;;;;;;;;1388:13;1375:10;:26;;;;1242:166:::0;:::o;917:319::-;281:5;;;;;;;;;;267:19;;:10;:19;;;259:41;;;;;;;;;;;;:::i;:::-;;;;;;;;;987:14:::1;1004:8;:14;1013:4;1004:14;;;;;;;;;;;;;;;;987:31;;1118:6;1051:66;1044:81;1153:1;1136:8;:14;1145:4;1136:14;;;;;;;;;;;;;;;:18;;;;1181:6;1164:13;;:23;;;;;;;:::i;:::-;;;;;;;;1206:5;::::0;::::1;;;;;;;;1198:23;;:31;1222:6;1198:31;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;::::0;::::1;;;;;;977:259;917:319:::0;:::o;1414:103::-;1470:7;1496:8;:14;1505:4;1496:14;;;;;;;;;;;;;;;;1489:21;;1414:103;;;:::o;143:28::-;;;;:::o;86:20::-;;;;;;;;;;;;:::o;432:171::-;498:1;486:9;:13;478:38;;;;;;;;;;;;:::i;:::-;;;;;;;;;551:9;527:8;:20;536:10;527:20;;;;;;;;;;;;;;;;:33;;;;;;;:::i;:::-;;;;;;;;587:9;570:13;;:26;;;;;;;:::i;:::-;;;;;;;;432:171::o;178:43::-;;;;;;;;;;;;;;;;;:::o;7:77:1:-;44:7;73:5;62:16;;7:77;;;:::o;90:118::-;177:24;195:5;177:24;:::i;:::-;172:3;165:37;90:118;;:::o;214:222::-;307:4;345:2;334:9;330:18;322:26;;358:71;426:1;415:9;411:17;402:6;358:71;:::i;:::-;214:222;;;;:::o;523:117::-;632:1;629;622:12;769:122;842:24;860:5;842:24;:::i;:::-;835:5;832:35;822:63;;881:1;878;871:12;822:63;769:122;:::o;897:139::-;943:5;981:6;968:20;959:29;;997:33;1024:5;997:33;:::i;:::-;897:139;;;;:::o;1042:329::-;1101:6;1150:2;1138:9;1129:7;1125:23;1121:32;1118:119;;;1156:79;;:::i;:::-;1118:119;1276:1;1301:53;1346:7;1337:6;1326:9;1322:22;1301:53;:::i;:::-;1291:63;;1247:117;1042:329;;;;:::o;1377:126::-;1414:7;1454:42;1447:5;1443:54;1432:65;;1377:126;;;:::o;1509:96::-;1546:7;1575:24;1593:5;1575:24;:::i;:::-;1564:35;;1509:96;;;:::o;1611:122::-;1684:24;1702:5;1684:24;:::i;:::-;1677:5;1674:35;1664:63;;1723:1;1720;1713:12;1664:63;1611:122;:::o;1739:139::-;1785:5;1823:6;1810:20;1801:29;;1839:33;1866:5;1839:33;:::i;:::-;1739:139;;;;:::o;1884:329::-;1943:6;1992:2;1980:9;1971:7;1967:23;1963:32;1960:119;;;1998:79;;:::i;:::-;1960:119;2118:1;2143:53;2188:7;2179:6;2168:9;2164:22;2143:53;:::i;:::-;2133:63;;2089:117;1884:329;;;;:::o;2219:118::-;2306:24;2324:5;2306:24;:::i;:::-;2301:3;2294:37;2219:118;;:::o;2343:222::-;2436:4;2474:2;2463:9;2459:18;2451:26;;2487:71;2555:1;2544:9;2540:17;2531:6;2487:71;:::i;:::-;2343:222;;;;:::o;2571:169::-;2655:11;2689:6;2684:3;2677:19;2729:4;2724:3;2720:14;2705:29;;2571:169;;;;:::o;2746:156::-;2886:8;2882:1;2874:6;2870:14;2863:32;2746:156;:::o;2908:365::-;3050:3;3071:66;3135:1;3130:3;3071:66;:::i;:::-;3064:73;;3146:93;3235:3;3146:93;:::i;:::-;3264:2;3259:3;3255:12;3248:19;;2908:365;;;:::o;3279:419::-;3445:4;3483:2;3472:9;3468:18;3460:26;;3532:9;3526:4;3522:20;3518:1;3507:9;3503:17;3496:47;3560:131;3686:4;3560:131;:::i;:::-;3552:139;;3279:419;;;:::o;3704:170::-;3844:22;3840:1;3832:6;3828:14;3821:46;3704:170;:::o;3880:366::-;4022:3;4043:67;4107:2;4102:3;4043:67;:::i;:::-;4036:74;;4119:93;4208:3;4119:93;:::i;:::-;4237:2;4232:3;4228:12;4221:19;;3880:366;;;:::o;4252:419::-;4418:4;4456:2;4445:9;4441:18;4433:26;;4505:9;4499:4;4495:20;4491:1;4480:9;4476:17;4469:47;4533:131;4659:4;4533:131;:::i;:::-;4525:139;;4252:419;;;:::o;4677:180::-;4725:77;4722:1;4715:88;4822:4;4819:1;4812:15;4846:4;4843:1;4836:15;4863:194;4903:4;4923:20;4941:1;4923:20;:::i;:::-;4918:25;;4957:20;4975:1;4957:20;:::i;:::-;4952:25;;5001:1;4998;4994:9;4986:17;;5025:1;5019:4;5016:11;5013:37;;;5030:18;;:::i;:::-;5013:37;4863:194;;;;:::o;5063:159::-;5203:11;5199:1;5191:6;5187:14;5180:35;5063:159;:::o;5228:365::-;5370:3;5391:66;5455:1;5450:3;5391:66;:::i;:::-;5384:73;;5466:93;5555:3;5466:93;:::i;:::-;5584:2;5579:3;5575:12;5568:19;;5228:365;;;:::o;5599:419::-;5765:4;5803:2;5792:9;5788:18;5780:26;;5852:9;5846:4;5842:20;5838:1;5827:9;5823:17;5816:47;5880:131;6006:4;5880:131;:::i;:::-;5872:139;;5599:419;;;:::o;6024:162::-;6164:14;6160:1;6152:6;6148:14;6141:38;6024:162;:::o;6192:366::-;6334:3;6355:67;6419:2;6414:3;6355:67;:::i;:::-;6348:74;;6431:93;6520:3;6431:93;:::i;:::-;6549:2;6544:3;6540:12;6533:19;;6192:366;;;:::o;6564:419::-;6730:4;6768:2;6757:9;6753:18;6745:26;;6817:9;6811:4;6807:20;6803:1;6792:9;6788:17;6781:47;6845:131;6971:4;6845:131;:::i;:::-;6837:139;;6564:419;;;:::o;6989:162::-;7129:14;7125:1;7117:6;7113:14;7106:38;6989:162;:::o;7157:366::-;7299:3;7320:67;7384:2;7379:3;7320:67;:::i;:::-;7313:74;;7396:93;7485:3;7396:93;:::i;:::-;7514:2;7509:3;7505:12;7498:19;;7157:366;;;:::o;7529:419::-;7695:4;7733:2;7722:9;7718:18;7710:26;;7782:9;7776:4;7772:20;7768:1;7757:9;7753:17;7746:47;7810:131;7936:4;7810:131;:::i;:::-;7802:139;;7529:419;;;:::o;7954:191::-;7994:3;8013:20;8031:1;8013:20;:::i;:::-;8008:25;;8047:20;8065:1;8047:20;:::i;:::-;8042:25;;8090:1;8087;8083:9;8076:16;;8111:3;8108:1;8105:10;8102:36;;;8118:18;;:::i;:::-;8102:36;7954:191;;;;:::o",
+                "storageLayout": {
+                    "storage": [
+                        {
+                            "astId": 3,
+                            "contract": "/home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_05_19_31_16_996503654e/.certora_sources/tests/fixtures/SavingsVault.sol:SavingsVault",
+                            "descriptor": {
+                                "annotations": [
+                                    {
+                                        "numberOfBytes": "20",
+                                        "type": "StorageAnnotation"
+                                    }
+                                ],
+                                "primitiveName": "address",
+                                "type": "Primitive"
+                            },
+                            "label": "owner",
+                            "offset": 0,
+                            "slot": "0",
+                            "type": "t_address"
+                        },
+                        {
+                            "astId": 5,
+                            "contract": "/home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_05_19_31_16_996503654e/.certora_sources/tests/fixtures/SavingsVault.sol:SavingsVault",
+                            "descriptor": {
+                                "annotations": [
+                                    {
+                                        "numberOfBytes": "32",
+                                        "type": "StorageAnnotation"
+                                    }
+                                ],
+                                "primitiveName": "uint256",
+                                "type": "Primitive"
+                            },
+                            "label": "unlockTime",
+                            "offset": 0,
+                            "slot": "1",
+                            "type": "t_uint256"
+                        },
+                        {
+                            "astId": 7,
+                            "contract": "/home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_05_19_31_16_996503654e/.certora_sources/tests/fixtures/SavingsVault.sol:SavingsVault",
+                            "descriptor": {
+                                "annotations": [
+                                    {
+                                        "numberOfBytes": "32",
+                                        "type": "StorageAnnotation"
+                                    }
+                                ],
+                                "primitiveName": "uint256",
+                                "type": "Primitive"
+                            },
+                            "label": "totalDeposits",
+                            "offset": 0,
+                            "slot": "2",
+                            "type": "t_uint256"
+                        },
+                        {
+                            "astId": 11,
+                            "contract": "/home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_05_19_31_16_996503654e/.certora_sources/tests/fixtures/SavingsVault.sol:SavingsVault",
+                            "descriptor": {
+                                "annotations": [
+                                    {
+                                        "numberOfBytes": "32",
+                                        "type": "StorageAnnotation"
+                                    }
+                                ],
+                                "mappingKeyType": {
+                                    "annotations": [
+                                        {
+                                            "numberOfBytes": "20",
+                                            "type": "StorageAnnotation"
+                                        }
+                                    ],
+                                    "primitiveName": "address",
+                                    "type": "Primitive"
+                                },
+                                "mappingValueType": {
+                                    "annotations": [
+                                        {
+                                            "numberOfBytes": "32",
+                                            "type": "StorageAnnotation"
+                                        }
+                                    ],
+                                    "primitiveName": "uint256",
+                                    "type": "Primitive"
+                                },
+                                "type": "Mapping"
+                            },
+                            "label": "deposits",
+                            "offset": 0,
+                            "slot": "3",
+                            "type": "t_mapping(t_address,t_uint256)"
+                        }
+                    ],
+                    "types": {
+                        "t_address": {
+                            "encoding": "inplace",
+                            "label": "address",
+                            "numberOfBytes": "20"
+                        },
+                        "t_mapping(t_address,t_uint256)": {
+                            "encoding": "mapping",
+                            "key": "t_address",
+                            "label": "mapping(address => uint256)",
+                            "numberOfBytes": "32",
+                            "value": "t_uint256"
+                        },
+                        "t_uint256": {
+                            "encoding": "inplace",
+                            "label": "uint256",
+                            "numberOfBytes": "32"
+                        }
+                    }
+                },
+                "transientStorageLayout": null,
+                "varmap": ""
+            }
+        ],
+        "legacyStructLinking": {},
+        "library_addresses": [],
+        "origSourceDir": ".pre_autofinders.0",
+        "primary_contract": "SavingsVault",
+        "primary_contract_address": "00000000ce4604a0000000000000000000000001",
+        "prototypeFor": [],
+        "sdc_name": "SavingsVault.sol_0",
+        "sourceDir": ".post_autofinders.0",
+        "srclist": {
+            "0": "tests/fixtures/SavingsVault.sol"
+        },
+        "state": {},
+        "structLinkingInfo": {}
+    }
+}

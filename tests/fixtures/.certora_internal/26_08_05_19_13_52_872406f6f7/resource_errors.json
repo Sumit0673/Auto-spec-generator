@@ -1,0 +1,13 @@
+{
+    "topics": [
+        {
+            "name": "type_check",
+            "messages": [
+                {
+                    "message": "Error in spec file (SavingsVault_attempt5.spec:105:63): Syntax error: unexpected token near `)`",
+                    "location": []
+                }
+            ]
+        }
+    ]
+}

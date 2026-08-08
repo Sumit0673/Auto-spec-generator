@@ -1,0 +1,8 @@
+{
+    "importFilesToOrigRelpaths": {},
+    "primary_contract": "SimpleToken",
+    "specfile": "/home/sumit-gupta/Auto-Spec/Output/SimpleTokenclear_attempt0.spec",
+    "specfileOrigRelpath": "../../Output/SimpleTokenclear_attempt0.spec",
+    "specfilesToImportDecls": {},
+    "type": "spec"
+}

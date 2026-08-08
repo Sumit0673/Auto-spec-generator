@@ -1,0 +1,8 @@
+{
+    "importFilesToOrigRelpaths": {},
+    "primary_contract": "SavingsVault",
+    "specfile": "/home/sumit-gupta/Auto-Spec/output/SavingsVault_attempt1.spec",
+    "specfileOrigRelpath": "../../output/SavingsVault_attempt1.spec",
+    "specfilesToImportDecls": {},
+    "type": "spec"
+}

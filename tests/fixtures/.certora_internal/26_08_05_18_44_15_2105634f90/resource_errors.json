@@ -1,0 +1,37 @@
+{
+    "topics": [
+        {
+            "name": "type_check",
+            "messages": [
+                {
+                    "message": "Error in spec file (SavingsVault_attempt0.spec:33:12): Syntax error: unexpected token near `revert`",
+                    "location": []
+                },
+                {
+                    "message": "Error in spec file (SavingsVault_attempt0.spec:37:24): Syntax error: unexpected token near `ether`",
+                    "location": []
+                },
+                {
+                    "message": "Error in spec file (SavingsVault_attempt0.spec:59:24): Syntax error: unexpected token near `ether`",
+                    "location": []
+                },
+                {
+                    "message": "Error in spec file (SavingsVault_attempt0.spec:70:24): Syntax error: unexpected token near `ether`",
+                    "location": []
+                },
+                {
+                    "message": "Error in spec file (SavingsVault_attempt0.spec:105:12): Syntax error: unexpected token near `revert`",
+                    "location": []
+                },
+                {
+                    "message": "Error in spec file (SavingsVault_attempt0.spec:117:12): Syntax error: unexpected token near `revert`",
+                    "location": []
+                },
+                {
+                    "message": "Error in spec file (SavingsVault_attempt0.spec:143:12): Syntax error: unexpected token near `revert`",
+                    "location": []
+                }
+            ]
+        }
+    ]
+}

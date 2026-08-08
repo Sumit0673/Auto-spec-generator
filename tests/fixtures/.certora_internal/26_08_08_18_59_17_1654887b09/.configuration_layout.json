@@ -1,0 +1,108 @@
+[
+    {
+        "card_title": "general",
+        "content_type": "COMPLEX",
+        "content": [
+            {
+                "inner_title": "CLI Version",
+                "content_type": "FLAG",
+                "content": "8.18.0",
+                "doc_link": "",
+                "tooltip": "",
+                "unsound": false
+            },
+            {
+                "inner_title": "branch",
+                "content_type": "FLAG",
+                "content": "main",
+                "doc_link": "",
+                "tooltip": "",
+                "unsound": false
+            },
+            {
+                "inner_title": "dirty",
+                "content_type": "FLAG",
+                "content": "true",
+                "doc_link": "",
+                "tooltip": "",
+                "unsound": false
+            },
+            {
+                "inner_title": "origin",
+                "content_type": "FLAG",
+                "content": "https://github.com/Sumit0673/Auto-spec-generator",
+                "doc_link": "",
+                "tooltip": "",
+                "unsound": false
+            },
+            {
+                "inner_title": "revision",
+                "content_type": "FLAG",
+                "content": "1b09d3f95b8bbe56f8581979fa5a8271771c1787",
+                "doc_link": "",
+                "tooltip": "",
+                "unsound": false
+            }
+        ]
+    },
+    {
+        "card_title": "files",
+        "content_type": "SIMPLE",
+        "content": [
+            {
+                "inner_title": "files",
+                "content_type": "SIMPLE",
+                "content": [
+                    "/home/sumit-gupta/Auto-Spec/tests/fixtures/SimpleToken.sol:SimpleToken"
+                ],
+                "doc_link": "https://docs.certora.com/en/latest/docs/prover/cli/options.html#files",
+                "tooltip": "",
+                "unsound": false
+            }
+        ]
+    },
+    {
+        "card_title": "options",
+        "content_type": "COMPLEX",
+        "content": [
+            {
+                "inner_title": "verify",
+                "content_type": "FLAG",
+                "content": "SimpleToken:/home/sumit-gupta/Auto-Spec/Output/SimpleToken_attempt2.spec",
+                "doc_link": "https://docs.certora.com/en/latest/docs/prover/cli/options.html#verify",
+                "tooltip": "",
+                "unsound": false
+            },
+            {
+                "inner_title": "compilation_steps_only",
+                "content_type": "FLAG",
+                "content": "true",
+                "doc_link": "https://docs.certora.com/en/latest/docs/prover/cli/options.html#compilation-steps-only",
+                "tooltip": "",
+                "unsound": false
+            },
+            {
+                "inner_title": "short_output",
+                "content_type": "FLAG",
+                "content": "true",
+                "doc_link": "https://docs.certora.com/en/latest/docs/prover/cli/options.html#short-output",
+                "tooltip": "",
+                "unsound": false
+            }
+        ]
+    },
+    {
+        "card_title": "solidity_compiler",
+        "content_type": "COMPLEX",
+        "content": [
+            {
+                "inner_title": "solc_allow_path",
+                "content_type": "FLAG",
+                "content": "/home/sumit-gupta/Auto-Spec/tests/fixtures",
+                "doc_link": "https://docs.certora.com/en/latest/docs/prover/cli/options.html#solc-allow-path",
+                "tooltip": "",
+                "unsound": false
+            }
+        ]
+    }
+]

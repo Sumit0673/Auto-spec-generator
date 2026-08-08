@@ -1,0 +1,8 @@
+{
+    "importFilesToOrigRelpaths": {},
+    "primary_contract": "AccessControl",
+    "specfile": "Output/Access_attempt2.spec",
+    "specfileOrigRelpath": "Output/Access_attempt2.spec",
+    "specfilesToImportDecls": {},
+    "type": "spec"
+}

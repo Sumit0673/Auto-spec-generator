@@ -1,0 +1,33 @@
+{
+    "topics": [
+        {
+            "name": "type_check",
+            "messages": [
+                {
+                    "message": "Error in spec file (Access_attempt1.spec:19:24): Syntax error: unexpected token near `(`",
+                    "location": []
+                },
+                {
+                    "message": "Error in spec file (Access_attempt1.spec:30:27): Syntax error: unexpected token near `(`",
+                    "location": []
+                },
+                {
+                    "message": "Error in spec file (Access_attempt1.spec:37:24): Syntax error: unexpected token near `(`",
+                    "location": []
+                },
+                {
+                    "message": "Error in spec file (Access_attempt1.spec:66:32): Syntax error: unexpected token near `(`",
+                    "location": []
+                },
+                {
+                    "message": "Error in spec file (Access_attempt1.spec:74:42): Syntax error: unexpected token near `(`",
+                    "location": []
+                },
+                {
+                    "message": "Error in spec file (Access_attempt1.spec:77:71): Syntax error: unexpected token near `!`",
+                    "location": []
+                }
+            ]
+        }
+    ]
+}

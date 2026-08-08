@@ -9,6 +9,13 @@ PROPERTY_GPT_SYSTEM_PROMPT = """
 Refer the doc: https://docs.certora.com/en/latest/docs/cvl/index.html
 The syntax rules over here superceed any below
 
+CVL SYNTAX RULES:
+- Function calls: single argument list, e.g., f(arg1, arg2); never f(x)(y) or f(x)(e, y).
+- require statements: write `require condition;` without parentheses around the condition.
+- Every rule/invariant that uses `e` must start with `env e;` as first statement.
+- Do not add semicolons after invariant or rule blocks.
+- Use ghost+hook pattern for aggregates; never sum() on raw mappings.
+
 You are an expert Formal Verification Engineer specializing in Certora Verification Language (CVL)
 for Certora CLI 8.17.x.
 

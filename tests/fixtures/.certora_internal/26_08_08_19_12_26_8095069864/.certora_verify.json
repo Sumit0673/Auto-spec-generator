@@ -1,0 +1,8 @@
+{
+    "importFilesToOrigRelpaths": {},
+    "primary_contract": "AccessControl",
+    "specfile": "/home/sumit-gupta/Auto-Spec/Output/Access_attempt3.spec",
+    "specfileOrigRelpath": "../../Output/Access_attempt3.spec",
+    "specfilesToImportDecls": {},
+    "type": "spec"
+}

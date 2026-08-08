@@ -1,0 +1,61 @@
+Saving last configuration file to .certora_internal/26_08_08_19_10_25_839580e9f2/run.conf
+contract name SimpleToken is the same as the file name and can be omitted from SimpleToken.sol:SimpleToken
+There is no TAC file. Going to script CertoraProver/certoraBuild.py to main_with_args()
+main build cache key computed based on {'files': ['SimpleToken.sol:SimpleToken'], 'package_version_for_build_cache': 'certora-cli 8.18.0', 'packages_path': 'node_modules', 'solc': 'solc', 'solc_allow_path': '/home/sumit-gupta/Auto-Spec/tests/fixtures', 'test_condition': 'True'}
+Creating dir /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_19_10_25_839580e9f2/.certora_config
+In /home/sumit-gupta/Auto-Spec/Output/SimpleTokenclear_attempt2.spec, found the imports: []
+copying spec file /home/sumit-gupta/Auto-Spec/Output/SimpleTokenclear_attempt2.spec to /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_19_10_25_839580e9f2/.certora_sources/.0_SimpleTokenclear_attempt2.spec.spec
+writing /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_19_10_25_839580e9f2/.certora_verify.json
+
+building file SimpleToken.sol
+Running cmd solc --version
+stdout, stderr = .certora_internal/26_08_08_19_10_25_839580e9f2/.certora_config/version_check_solc.stdout, .certora_internal/26_08_08_19_10_25_839580e9f2/.certora_config/version_check_solc.stderr
+Exitcode 0
+Solc run solc --version time: 0.5471
+Running cmd solc -o ".certora_internal/26_08_08_19_10_25_839580e9f2/.certora_config/SimpleToken.sol_0/" --overwrite --allow-paths "/home/sumit-gupta/Auto-Spec/tests/fixtures",. --standard-json
+stdout, stderr = .certora_internal/26_08_08_19_10_25_839580e9f2/.certora_config/SimpleToken.sol_0.standard.stdout.json, .certora_internal/26_08_08_19_10_25_839580e9f2/.certora_config/SimpleToken.sol_0.standard.stderr.json
+Exitcode 0
+Solc run solc -o ".certora_internal/26_08_08_19_10_25_839580e9f2/.certora_config/SimpleToken.sol_0/" --overwrite --allow-paths "/home/sumit-gupta/Auto-Spec/tests/fixtures",. --standard-json time: 0.6054
+reading standard json data from .certora_internal/26_08_08_19_10_25_839580e9f2/.certora_config/SimpleToken.sol_0.standard.stdout.json
+available keys: dict_keys(['/home/sumit-gupta/Auto-Spec/tests/fixtures/SimpleToken.sol'])
+collecting worklist for /home/sumit-gupta/Auto-Spec/tests/fixtures/SimpleToken.sol
+Processing dependencies from file /home/sumit-gupta/Auto-Spec/tests/fixtures/SimpleToken.sol
+available keys: dict_keys(['/home/sumit-gupta/Auto-Spec/tests/fixtures/SimpleToken.sol'])
+Contracts in SimpleToken.sol_0 (file SimpleToken.sol): ['SimpleToken']
+Contracts with their chosen addresses: [(274184521717934524641157099916833587200, '/home/sumit-gupta/Auto-Spec/tests/fixtures/SimpleToken.sol:SimpleToken')]
+Report source list={0: 'SimpleToken.sol'}
+Finding report source file, abs path /home/sumit-gupta/Auto-Spec/tests/fixtures/SimpleToken.sol relative to /home/sumit-gupta/Auto-Spec/tests/fixtures
+Working on contract SimpleToken
+Working on contract SimpleToken
+For contracts of primary SimpleToken
+finding primary contract address of /home/sumit-gupta/Auto-Spec/tests/fixtures/SimpleToken.sol:SimpleToken in [(274184521717934524641157099916833587200, '/home/sumit-gupta/Auto-Spec/tests/fixtures/SimpleToken.sol:SimpleToken')]
+Contracts in SDC SimpleToken.sol_0: ['SimpleToken']
+Building source tree
+Copying /home/sumit-gupta/Auto-Spec/tests/fixtures/SimpleToken.sol to .certora_internal/26_08_08_19_10_25_839580e9f2/.certora_sources/tests/fixtures/SimpleToken.sol
+Copying /home/sumit-gupta/Auto-Spec/Output/SimpleTokenclear_attempt2.spec to .certora_internal/26_08_08_19_10_25_839580e9f2/.certora_sources/Output/SimpleTokenclear_attempt2.spec
+Report source list={0: 'tests/fixtures/SimpleToken.sol'}
+Backing up current .certora_sources to .certora_internal/26_08_08_19_10_25_839580e9f2/.certora_sources/.pre_autofinders.0
+Running cmd solc -o ".certora_internal/26_08_08_19_10_25_839580e9f2/.certora_config/SimpleToken.sol_0/" --overwrite --allow-paths "/home/sumit-gupta/Auto-Spec/tests/fixtures",. --standard-json
+stdout, stderr = .certora_internal/26_08_08_19_10_25_839580e9f2/.certora_config/SimpleToken.sol_0.standard.stdout.json, .certora_internal/26_08_08_19_10_25_839580e9f2/.certora_config/SimpleToken.sol_0.standard.stderr.json
+Exitcode 0
+Solc run solc -o ".certora_internal/26_08_08_19_10_25_839580e9f2/.certora_config/SimpleToken.sol_0/" --overwrite --allow-paths "/home/sumit-gupta/Auto-Spec/tests/fixtures",. --standard-json time: 0.5892
+reading standard json data from .certora_internal/26_08_08_19_10_25_839580e9f2/.certora_config/SimpleToken.sol_0.standard.stdout.json
+available keys: dict_keys(['/home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_19_10_25_839580e9f2/.certora_sources/tests/fixtures/SimpleToken.sol'])
+collecting worklist for /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_19_10_25_839580e9f2/.certora_sources/tests/fixtures/SimpleToken.sol
+Processing dependencies from file /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_19_10_25_839580e9f2/.certora_sources/tests/fixtures/SimpleToken.sol
+available keys: dict_keys(['/home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_19_10_25_839580e9f2/.certora_sources/tests/fixtures/SimpleToken.sol'])
+Contracts in SimpleToken.sol_0 (file .certora_internal/26_08_08_19_10_25_839580e9f2/.certora_sources/tests/fixtures/SimpleToken.sol): ['SimpleToken']
+Contracts with their chosen addresses: [(274184521717934524641157099916833587201, '/home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_19_10_25_839580e9f2/.certora_sources/tests/fixtures/SimpleToken.sol:SimpleToken')]
+Report source list={0: 'tests/fixtures/SimpleToken.sol'}
+Finding report source file, abs path /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_19_10_25_839580e9f2/.certora_sources/tests/fixtures/SimpleToken.sol relative to .certora_internal/26_08_08_19_10_25_839580e9f2/.certora_sources/tests/fixtures
+Working on contract SimpleToken
+Working on contract SimpleToken
+For contracts of primary SimpleToken
+finding primary contract address of /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_19_10_25_839580e9f2/.certora_sources/tests/fixtures/SimpleToken.sol:SimpleToken in [(274184521717934524641157099916833587201, '/home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_19_10_25_839580e9f2/.certora_sources/tests/fixtures/SimpleToken.sol:SimpleToken')]
+Contracts in SDC SimpleToken.sol_0: ['SimpleToken']
+Backing up instrumented .certora_sources to .certora_internal/26_08_08_19_10_25_839580e9f2/.certora_sources/.post_autofinders.0
+Rolling back .certora_sources to .certora_internal/26_08_08_19_10_25_839580e9f2/.certora_sources/.pre_autofinders.0 version
+Libraries to add = []
+writing file /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_19_10_25_839580e9f2/.certora_build.json
+writing file /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_19_10_25_839580e9f2/.certora_build_output_props.json
+writing /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_19_10_25_839580e9f2/.certora_verify.json

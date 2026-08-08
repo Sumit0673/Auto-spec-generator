@@ -33,6 +33,9 @@ def lint_spec(spec_content: str, contract_code: str) -> list[LintError]:
     errors.extend(_check_invariant_brace_body(spec_content))
     errors.extend(_check_env_in_invariant(spec_content))
     errors.extend(_check_undeclared_ghost(spec_content))
+    errors.extend(_check_sinvoke(spec_content))
+    errors.extend(_check_envfree_with_env(spec_content))
+    errors.extend(_check_require_parens(spec_content))
     return errors
 
 
@@ -313,6 +316,59 @@ def _check_undeclared_ghost(spec: str) -> list[LintError]:
         )
         for name in sorted(used - declared)
     ]
+
+
+def _check_sinvoke(spec: str) -> list[LintError]:
+    """Check 14: sinvoke/invoke are deprecated in Certora CLI 7+."""
+    errors = []
+    for i, line in enumerate(spec.splitlines(), 1):
+        if re.search(r'\b(sinvoke|invoke)\b', line):
+            errors.append(LintError(
+                "deprecated_sinvoke",
+                f"`sinvoke`/`invoke` in `{line.strip()}` is deprecated. "
+                "Call functions directly: `transfer(e, to, amount)` not "
+                "`sinvoke transfer(e, to, amount)`",
+                line=i,
+            ))
+    return errors
+
+
+def _check_envfree_with_env(spec: str) -> list[LintError]:
+    """Check 15: functions marked envfree should not receive env argument."""
+    methods = _extract_methods_block(spec)
+    if not methods:
+        return []
+    envfree_fns = set(re.findall(r'function\s+(\w+)\s*\([^)]*\)[^;]*\benvfree\b', methods))
+    if not envfree_fns:
+        return []
+    errors = []
+    methods_match = re.search(r'methods\s*\{', spec)
+    body = spec[methods_match.end():] if methods_match else spec
+    for fn_name in sorted(envfree_fns):
+        if re.search(rf'\b{fn_name}\s*\(\s*e\s*[,)]', body):
+            errors.append(LintError(
+                "envfree_with_env",
+                f"Function `{fn_name}` is declared `envfree` but called with "
+                f"env argument `e`. Remove `e` from the call: `{fn_name}(args)` "
+                f"not `{fn_name}(e, args)`",
+            ))
+    return errors
+
+
+def _check_require_parens(spec: str) -> list[LintError]:
+    """Check 16: CVL require uses `require cond;` not `require(cond);`."""
+    errors = []
+    for i, line in enumerate(spec.splitlines(), 1):
+        # Detect require( — CVL require is a keyword, not a function call.
+        # Matches `require(cond);` but not `requireInvariant(...)`.
+        if re.search(r'\brequire\s*\(', line) and not re.search(r'\brequireInvariant\b', line):
+            errors.append(LintError(
+                "require_parens",
+                f"CVL `require` in `{line.strip()}` should not use parentheses. "
+                "Write `require condition;` not `require(condition);`",
+                line=i,
+            ))
+    return errors
 
 
 def format_lint_errors(errors: list[LintError]) -> str:

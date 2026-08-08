@@ -1,0 +1,17 @@
+{
+    "topics": [
+        {
+            "name": "type_check",
+            "messages": [
+                {
+                    "message": "Error in spec file (SimpleTokenclear_attempt0.spec:118:13): Syntax error: unexpected token near `{`",
+                    "location": []
+                },
+                {
+                    "message": "Error in spec file (SimpleTokenclear_attempt0.spec:131:13): Syntax error: unexpected token near `{`",
+                    "location": []
+                }
+            ]
+        }
+    ]
+}

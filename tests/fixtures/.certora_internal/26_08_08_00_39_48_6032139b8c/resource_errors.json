@@ -1,0 +1,21 @@
+{
+    "topics": [
+        {
+            "name": "type_check",
+            "messages": [
+                {
+                    "message": "Error in spec file (Access_attempt8.spec:14:1): Syntax error: unexpected token near `env`",
+                    "location": []
+                },
+                {
+                    "message": "Error in spec file (Access_attempt8.spec:20:5): Syntax error: unexpected token near `assert`",
+                    "location": []
+                },
+                {
+                    "message": "Error in spec file (Access_attempt8.spec:78:17): Syntax error: unexpected token near `arg`",
+                    "location": []
+                }
+            ]
+        }
+    ]
+}

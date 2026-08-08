@@ -1,0 +1,2 @@
+Saving last configuration file to .certora_internal/26_08_08_16_19_28_05224036df/run.conf
+contract name SimpleToken is the same as the file name and can be omitted from SimpleToken.sol:SimpleToken

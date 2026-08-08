@@ -1,0 +1,13 @@
+{
+    "topics": [
+        {
+            "name": "type_check",
+            "messages": [
+                {
+                    "message": "Error in spec file (Access_attempt5.spec:78:9): Syntax error: unexpected token near `e`",
+                    "location": []
+                }
+            ]
+        }
+    ]
+}

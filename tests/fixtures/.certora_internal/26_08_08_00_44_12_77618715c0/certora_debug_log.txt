@@ -1,0 +1,73 @@
+Saving last configuration file to .certora_internal/26_08_08_00_44_12_77618715c0/run.conf
+contract name AccessControl is the same as the file name and can be omitted from AccessControl.sol:AccessControl
+There is no TAC file. Going to script CertoraProver/certoraBuild.py to main_with_args()
+main build cache key computed based on {'files': ['AccessControl.sol:AccessControl'], 'package_version_for_build_cache': 'certora-cli 8.18.0', 'packages_path': 'node_modules', 'solc': 'solc', 'solc_allow_path': '/home/sumit-gupta/Auto-Spec/tests/fixtures', 'test_condition': 'True'}
+Creating dir /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_00_44_12_77618715c0/.certora_config
+In /home/sumit-gupta/Auto-Spec/Output/Access_attempt7.spec, found the imports: []
+copying spec file /home/sumit-gupta/Auto-Spec/Output/Access_attempt7.spec to /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_00_44_12_77618715c0/.certora_sources/.0_Access_attempt7.spec.spec
+writing /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_00_44_12_77618715c0/.certora_verify.json
+
+building file AccessControl.sol
+Running cmd solc --version
+stdout, stderr = .certora_internal/26_08_08_00_44_12_77618715c0/.certora_config/version_check_solc.stdout, .certora_internal/26_08_08_00_44_12_77618715c0/.certora_config/version_check_solc.stderr
+Exitcode 0
+Solc run solc --version time: 0.5167
+Running cmd solc -o ".certora_internal/26_08_08_00_44_12_77618715c0/.certora_config/AccessControl.sol_0/" --overwrite --allow-paths "/home/sumit-gupta/Auto-Spec/tests/fixtures",. --standard-json
+stdout, stderr = .certora_internal/26_08_08_00_44_12_77618715c0/.certora_config/AccessControl.sol_0.standard.stdout.json, .certora_internal/26_08_08_00_44_12_77618715c0/.certora_config/AccessControl.sol_0.standard.stderr.json
+Exitcode 0
+Solc run solc -o ".certora_internal/26_08_08_00_44_12_77618715c0/.certora_config/AccessControl.sol_0/" --overwrite --allow-paths "/home/sumit-gupta/Auto-Spec/tests/fixtures",. --standard-json time: 0.6335
+reading standard json data from .certora_internal/26_08_08_00_44_12_77618715c0/.certora_config/AccessControl.sol_0.standard.stdout.json
+available keys: dict_keys(['/home/sumit-gupta/Auto-Spec/tests/fixtures/AccessControl.sol'])
+collecting worklist for /home/sumit-gupta/Auto-Spec/tests/fixtures/AccessControl.sol
+Processing dependencies from file /home/sumit-gupta/Auto-Spec/tests/fixtures/AccessControl.sol
+available keys: dict_keys(['/home/sumit-gupta/Auto-Spec/tests/fixtures/AccessControl.sol'])
+Contracts in AccessControl.sol_0 (file AccessControl.sol): ['AccessControl']
+Contracts with their chosen addresses: [(274184521717934524641157099916833587200, '/home/sumit-gupta/Auto-Spec/tests/fixtures/AccessControl.sol:AccessControl')]
+Report source list={0: 'AccessControl.sol'}
+Finding report source file, abs path /home/sumit-gupta/Auto-Spec/tests/fixtures/AccessControl.sol relative to /home/sumit-gupta/Auto-Spec/tests/fixtures
+Working on contract AccessControl
+Working on contract AccessControl
+For contracts of primary AccessControl
+finding primary contract address of /home/sumit-gupta/Auto-Spec/tests/fixtures/AccessControl.sol:AccessControl in [(274184521717934524641157099916833587200, '/home/sumit-gupta/Auto-Spec/tests/fixtures/AccessControl.sol:AccessControl')]
+Contracts in SDC AccessControl.sol_0: ['AccessControl']
+Building source tree
+Copying /home/sumit-gupta/Auto-Spec/tests/fixtures/AccessControl.sol to .certora_internal/26_08_08_00_44_12_77618715c0/.certora_sources/tests/fixtures/AccessControl.sol
+Copying /home/sumit-gupta/Auto-Spec/Output/Access_attempt7.spec to .certora_internal/26_08_08_00_44_12_77618715c0/.certora_sources/Output/Access_attempt7.spec
+Report source list={0: 'tests/fixtures/AccessControl.sol'}
+Backing up current .certora_sources to .certora_internal/26_08_08_00_44_12_77618715c0/.certora_sources/.pre_autofinders.0
+Running cmd solc -o ".certora_internal/26_08_08_00_44_12_77618715c0/.certora_config/AccessControl.sol_0/" --overwrite --allow-paths "/home/sumit-gupta/Auto-Spec/tests/fixtures",. --standard-json
+stdout, stderr = .certora_internal/26_08_08_00_44_12_77618715c0/.certora_config/AccessControl.sol_0.standard.stdout.json, .certora_internal/26_08_08_00_44_12_77618715c0/.certora_config/AccessControl.sol_0.standard.stderr.json
+Exitcode 0
+Solc run solc -o ".certora_internal/26_08_08_00_44_12_77618715c0/.certora_config/AccessControl.sol_0/" --overwrite --allow-paths "/home/sumit-gupta/Auto-Spec/tests/fixtures",. --standard-json time: 0.7028
+reading standard json data from .certora_internal/26_08_08_00_44_12_77618715c0/.certora_config/AccessControl.sol_0.standard.stdout.json
+available keys: dict_keys(['/home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_00_44_12_77618715c0/.certora_sources/tests/fixtures/AccessControl.sol'])
+collecting worklist for /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_00_44_12_77618715c0/.certora_sources/tests/fixtures/AccessControl.sol
+Processing dependencies from file /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_00_44_12_77618715c0/.certora_sources/tests/fixtures/AccessControl.sol
+available keys: dict_keys(['/home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_00_44_12_77618715c0/.certora_sources/tests/fixtures/AccessControl.sol'])
+Contracts in AccessControl.sol_0 (file .certora_internal/26_08_08_00_44_12_77618715c0/.certora_sources/tests/fixtures/AccessControl.sol): ['AccessControl']
+Contracts with their chosen addresses: [(274184521717934524641157099916833587201, '/home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_00_44_12_77618715c0/.certora_sources/tests/fixtures/AccessControl.sol:AccessControl')]
+Report source list={0: 'tests/fixtures/AccessControl.sol'}
+Finding report source file, abs path /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_00_44_12_77618715c0/.certora_sources/tests/fixtures/AccessControl.sol relative to .certora_internal/26_08_08_00_44_12_77618715c0/.certora_sources/tests/fixtures
+Working on contract AccessControl
+Working on contract AccessControl
+For contracts of primary AccessControl
+finding primary contract address of /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_00_44_12_77618715c0/.certora_sources/tests/fixtures/AccessControl.sol:AccessControl in [(274184521717934524641157099916833587201, '/home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_00_44_12_77618715c0/.certora_sources/tests/fixtures/AccessControl.sol:AccessControl')]
+Contracts in SDC AccessControl.sol_0: ['AccessControl']
+Backing up instrumented .certora_sources to .certora_internal/26_08_08_00_44_12_77618715c0/.certora_sources/.post_autofinders.0
+Rolling back .certora_sources to .certora_internal/26_08_08_00_44_12_77618715c0/.certora_sources/.pre_autofinders.0 version
+Libraries to add = []
+writing file /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_00_44_12_77618715c0/.certora_build.json
+writing file /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_00_44_12_77618715c0/.certora_build_output_props.json
+writing /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_00_44_12_77618715c0/.certora_verify.json
+Failed to run Certora Prover typechecker locally.
+Please check the errors below for problems in the specifications (.spec files) or the prover_args defined in the .conf file.
+[main] ERROR ALWAYS - Found errors in Output/Access_attempt7.spec:
+[main] ERROR ALWAYS - Error in spec file (Access_attempt7.spec:20:12): could not type expression "AccessControl.grantAdmin(e,account) == false", message: type void is not comparable
+[main] ERROR ALWAYS - Error in spec file (Access_attempt7.spec:34:12): could not type expression "AccessControl.revokeAdmin(e,account) == false", message: type void is not comparable
+[main] ERROR ALWAYS - Error in spec file (Access_attempt7.spec:41:12): could not type expression "AccessControl.revokeAdmin(e,account) == false", message: type void is not comparable
+[main] ERROR ALWAYS - Error in spec file (Access_attempt7.spec:55:12): could not type expression "AccessControl.transferOwnership(e,newOwner) == false", message: type void is not comparable
+[main] ERROR ALWAYS - Error in spec file (Access_attempt7.spec:69:12): could not type expression "AccessControl.transferOwnership(e,nonOwner) == false", message: type void is not comparable
+[main] ERROR ALWAYS - Error in spec file (Access_attempt7.spec:75:12): could not type expression "AccessControl.setThreshold(e,newThreshold) == false", message: type void is not comparable
+[main] ERROR ALWAYS - Error in spec file (Access_attempt7.spec:81:12): could not type expression "AccessControl.setThreshold(e,newThreshold) == false", message: type void is not comparable
+[main] ERROR ALWAYS - Error in spec file (Access_attempt7.spec:95:12): could not type expression "AccessControl.pause(e) == false", message: type void is not comparable
+[main] ERROR ALWAYS - Error in spec file (Access_attempt7.spec:109:12): could not type expression "AccessControl.unpause(e) == false", message: type void is not comparable

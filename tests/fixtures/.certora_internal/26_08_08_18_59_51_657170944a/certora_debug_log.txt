@@ -1,0 +1,15 @@
+Saving last configuration file to .certora_internal/26_08_08_18_59_51_657170944a/run.conf
+contract name SimpleToken is the same as the file name and can be omitted from SimpleToken.sol:SimpleToken
+There is no TAC file. Going to script CertoraProver/certoraBuild.py to main_with_args()
+main build cache key computed based on {'files': ['SimpleToken.sol:SimpleToken'], 'package_version_for_build_cache': 'certora-cli 8.18.0', 'packages_path': 'node_modules', 'solc': 'solc', 'solc_allow_path': '/home/sumit-gupta/Auto-Spec/tests/fixtures', 'test_condition': 'True'}
+Creating dir /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_18_59_51_657170944a/.certora_config
+In /home/sumit-gupta/Auto-Spec/Output/SimpleToken_attempt5.spec, found the imports: []
+copying spec file /home/sumit-gupta/Auto-Spec/Output/SimpleToken_attempt5.spec to /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_18_59_51_657170944a/.certora_sources/.0_SimpleToken_attempt5.spec.spec
+writing /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_18_59_51_657170944a/.certora_verify.json
+Failed to run Certora Prover typechecker locally.
+Please check the errors below for problems in the specifications (.spec files) or the prover_args defined in the .conf file.
+[main] ERROR ALWAYS - Found errors in ../../Output/SimpleToken_attempt5.spec:
+[main] ERROR ALWAYS - Error in spec file (SimpleToken_attempt5.spec:67:25): Syntax error: unexpected token near `(`
+[main] ERROR ALWAYS - Error in spec file (SimpleToken_attempt5.spec:84:25): Syntax error: unexpected token near `(`
+[main] ERROR ALWAYS - Error in spec file (SimpleToken_attempt5.spec:93:25): Syntax error: unexpected token near `(`
+build failed

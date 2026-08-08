@@ -1,0 +1,21 @@
+Saving last configuration file to .certora_internal/26_08_08_19_12_51_0875557e64/run.conf
+contract name AccessControl is the same as the file name and can be omitted from AccessControl.sol:AccessControl
+There is no TAC file. Going to script CertoraProver/certoraBuild.py to main_with_args()
+main build cache key computed based on {'files': ['AccessControl.sol:AccessControl'], 'package_version_for_build_cache': 'certora-cli 8.18.0', 'packages_path': 'node_modules', 'solc': 'solc', 'solc_allow_path': '/home/sumit-gupta/Auto-Spec/tests/fixtures', 'test_condition': 'True'}
+Creating dir /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_19_12_51_0875557e64/.certora_config
+In /home/sumit-gupta/Auto-Spec/Output/Access_attempt5.spec, found the imports: []
+copying spec file /home/sumit-gupta/Auto-Spec/Output/Access_attempt5.spec to /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_19_12_51_0875557e64/.certora_sources/.0_Access_attempt5.spec.spec
+writing /home/sumit-gupta/Auto-Spec/tests/fixtures/.certora_internal/26_08_08_19_12_51_0875557e64/.certora_verify.json
+Failed to run Certora Prover typechecker locally.
+Please check the errors below for problems in the specifications (.spec files) or the prover_args defined in the .conf file.
+[main] ERROR ALWAYS - Found errors in ../../Output/Access_attempt5.spec:
+[main] ERROR ALWAYS - Error in spec file (Access_attempt5.spec:19:24): Syntax error: unexpected token near `(`
+[main] ERROR ALWAYS - Error in spec file (Access_attempt5.spec:29:27): Syntax error: unexpected token near `(`
+[main] ERROR ALWAYS - Error in spec file (Access_attempt5.spec:36:24): Syntax error: unexpected token near `(`
+[main] ERROR ALWAYS - Error in spec file (Access_attempt5.spec:43:25): Syntax error: unexpected token near `(`
+[main] ERROR ALWAYS - Error in spec file (Access_attempt5.spec:51:25): Syntax error: unexpected token near `(`
+[main] ERROR ALWAYS - Error in spec file (Access_attempt5.spec:58:25): Syntax error: unexpected token near `(`
+[main] ERROR ALWAYS - Error in spec file (Access_attempt5.spec:65:32): Syntax error: unexpected token near `(`
+[main] ERROR ALWAYS - Error in spec file (Access_attempt5.spec:73:34): Syntax error: unexpected token near `(`
+[main] ERROR ALWAYS - Error in spec file (Access_attempt5.spec:76:71): Syntax error: unexpected token near `!`
+build failed

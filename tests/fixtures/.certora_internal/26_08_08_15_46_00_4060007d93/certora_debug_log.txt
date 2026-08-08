@@ -1,0 +1,2 @@
+Saving last configuration file to .certora_internal/26_08_08_15_46_00_4060007d93/run.conf
+contract name AccessControl is the same as the file name and can be omitted from AccessControl.sol:AccessControl

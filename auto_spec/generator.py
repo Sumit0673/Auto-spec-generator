@@ -6,11 +6,13 @@ v2: error-memory persistence, static linter, deterministic methods-block,
 """
 
 import argparse
+import hashlib
 import re
+import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 
 if __package__ in {None, ""}:
     project_root = Path(__file__).resolve().parent.parent
@@ -33,6 +35,27 @@ from auto_spec.prompts.property_gpt import (
     format_per_function_prompt,
     format_cross_cutting_prompt,
 )
+
+
+def _run_certora_parse(spec_path: Path) -> Tuple[bool, str]:
+    """Run `certoraParse --only-parse <spec_path>`.
+    Returns (success, output). Success True if exit code 0.
+    """
+    try:
+        result = subprocess.run(
+            ["certoraParse", "--only-parse", str(spec_path)],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        output = result.stdout + result.stderr
+        return result.returncode == 0, output.strip()
+    except FileNotFoundError:
+        return False, "certoraParse not found in PATH"
+    except subprocess.TimeoutExpired:
+        return False, "certoraParse timed out"
+    except Exception as e:
+        return False, f"certoraParse error: {e}"
 
 
 class SpecGenerator:
@@ -101,15 +124,14 @@ class SpecGenerator:
             print(f"📝 Loaded {len(known_errors)} known-bad patterns from prior runs")
 
         # Retrieve reference specs
-        print(f"Retrieving similar specs for: {contract_name}...")
         retrieved_context = self.vector_db.query(query, top_k=top_k)
 
         if not retrieved_context:
             print("Warning: No similar specs found in database (or all below similarity floor)")
         else:
             print(f"Found {len(retrieved_context)} reference specs")
-            for i, ctx in enumerate(retrieved_context):
-                print(f"  [{i}] {getattr(ctx, 'name', ctx)!r} score={getattr(ctx, 'score', '?')}")
+            # for i, ctx in enumerate(retrieved_context):
+            #     print(f"  [{i}] {getattr(ctx, 'name', ctx)!r} score={getattr(ctx, 'score', '?')}")
 
         # Build deterministic methods block (Phase 4)
         det_methods_block = build_methods_block(contract_code)
@@ -138,6 +160,7 @@ class SpecGenerator:
         validation_output_path = self.save_spec(spec_content, output_path, 0)
 
         if validate:
+            prev_spec_hash = None
             for attempt in range(max_repairs):
                 # Phase 2: run static linter before Certora
                 lint_errors = lint_spec(spec_content, contract_code)
@@ -154,6 +177,12 @@ class SpecGenerator:
                     if result.passed:
                         print(f"✅ Certora compilation passed on attempt {attempt + 1}")
                         self.error_memory.record(contract_hash, run_id, attempt, spec_content, [])
+                        output_path_for_passed = output_path + "_passed" if output_path is not None else "Output/" + contract_name + ".spec" 
+                        self.save_spec(spec_content, output_path_for_passed, attempt + 1)
+                        break
+                    if _is_environment_error(result.output):
+                        print(f"⚠️  Environment error (not a spec issue): {result.output[:200]}")
+                        print("   Fix your environment and re-run. Aborting repair loop.")
                         break
                     feedback_lines = _enrich_certora_feedback(result.output, spec_content)
                     error_source = "certora"
@@ -172,13 +201,21 @@ class SpecGenerator:
                     known_errors=known_errors,
                 )
                 spec_content = _clean_cvl_spec(spec_content, det_methods_block, contract_code)
+
+                # Short-circuit if LLM returned identical spec (stuck)
+                current_hash = hashlib.sha256(spec_content.encode()).hexdigest()
+                if current_hash == prev_spec_hash:
+                    print("⚠️  LLM returned identical spec — repair loop stuck. Aborting.")
+                    break
+                prev_spec_hash = current_hash
+
                 validation_output_path = self.save_spec(spec_content, output_path, attempt + 1)
 
-                print("#" * 50 + "START" + "#" * 50)
+                print("-" * 50 + "START" + "-" * 50)
                 print(f"Attempt {attempt+1} ({error_source}) failures:")
                 for err in feedback_lines[:5]:
                     print(f"  • {err}")
-                print("#" * 50 + "END" + "#" * 50)
+                print("-" * 50 + "END" + "-" * 50)
             else:
                 # Loop exhausted without passing — still record final state
                 self.error_memory.record(contract_hash, run_id, max_repairs, spec_content, feedback_lines)
@@ -420,6 +457,13 @@ class SpecGenerator:
 
 def _clean_cvl_spec(spec_content: str, det_methods_block: str, contract_code: str = "") -> str:
     """Auto-repair common structural and syntax errors in generated CVL specs."""
+    # 0a. Strip deprecated sinvoke/invoke keywords
+    spec_content = re.sub(r'\bsinvoke\s+', '', spec_content)
+    spec_content = re.sub(r'\binvoke\s+', '', spec_content)
+
+    # 0b. Fix require(cond); -> require cond;
+    spec_content = re.sub(r'\brequire\s*\(([^)]+)\)\s*;', r'require \1;', spec_content)
+
     # 1. Strip mutability keywords from methods block
     spec_content = _strip_solidity_mutability_keywords(spec_content)
 
@@ -475,13 +519,74 @@ def _clean_cvl_spec(spec_content: str, det_methods_block: str, contract_code: st
     #     Asking via repair prompt doesn't work reliably — just inject deterministically.
     spec_content = _inject_ghost_declarations(spec_content)
 
+    # 11. Strip env arg from envfree function calls
+    spec_content = _strip_env_from_envfree(spec_content)
+
     return spec_content
+
+
+# ponytail: simple keyword match — covers known certoraRun/solc error messages.
+# If Certora invents new env-error phrasing, add it here.
+_ENV_ERROR_PATTERNS = [
+    "solc not found",
+    "solidity executable",
+    "certorarun is not installed",
+    "certorakey",
+    "connection refused",
+    "no --solc path given",
+]
+
+
+def _is_environment_error(output: str) -> bool:
+    """True if the Certora failure is an env issue the LLM can't fix."""
+    lowered = output.lower()
+    return any(pat in lowered for pat in _ENV_ERROR_PATTERNS)
+
+
+def _strip_env_from_envfree(spec: str) -> str:
+    """Remove env arg from calls to functions declared envfree in methods{}."""
+    methods_match = re.search(r'methods\s*\{', spec)
+    if not methods_match:
+        return spec
+    # Find closing brace
+    depth, start = 1, methods_match.end()
+    methods_end = len(spec)
+    for i in range(start, len(spec)):
+        if spec[i] == '{':
+            depth += 1
+        elif spec[i] == '}':
+            depth -= 1
+            if depth == 0:
+                methods_end = i
+                break
+    methods_content = spec[start:methods_end]
+    envfree_fns = set(re.findall(r'function\s+(\w+)\s*\([^)]*\)[^;]*\benvfree\b', methods_content))
+    if not envfree_fns:
+        return spec
+    head = spec[:methods_end + 1]
+    tail = spec[methods_end + 1:]
+    for fn_name in envfree_fns:
+        # fn(e, args...) -> fn(args...)
+        tail = re.sub(rf'\b{fn_name}\s*\(\s*e\s*,\s*', f'{fn_name}(', tail)
+        # fn(e) -> fn()
+        tail = re.sub(rf'\b{fn_name}\s*\(\s*e\s*\)', f'{fn_name}()', tail)
+    return head + tail
 
 
 def _enrich_certora_feedback(output: str, spec_content: str) -> list[str]:
     """Extract Certora error messages and attach corresponding code line snippets."""
     spec_lines = spec_content.splitlines()
     enriched = []
+
+    # Mapping of error substrings to helpful suggestions
+    error_suggestions = {
+        "unexpected token near `("": "Function calls must have a single argument list. Rewrite `f(x)(e, y)` as `f(x, e, y);`.",
+        "require` in `require(": "Remove parentheses around condition. Write `require condition;` not `require(condition);`.",
+        "Variable `e` has not been declared": "Add `env e;` as the first statement in the rule/invariant that uses `e`.",
+        "sum()": "Do not use `sum()` on raw mappings. Use a ghost variable with a hook instead.",
+        "before` / `after` keywords": "Do not use `before` / `after` keywords in CVL.",
+        "old(`": "Do not use `old(...)` or `@old` in CVL.",
+    }
 
     for line in output.splitlines():
         line_str = line.strip()
@@ -493,10 +598,19 @@ def _enrich_certora_feedback(output: str, spec_content: str) -> list[str]:
             err_msg = match.group(2)
             code_snippet = spec_lines[line_num - 1] if 0 < line_num <= len(spec_lines) else ""
             enriched.append(f"Line {line_num} `{code_snippet.strip()}` -> Error: {err_msg}")
+            # Add suggestion if any known pattern matches
+            for key, suggestion in error_suggestions.items():
+                if key in err_msg:
+                    enriched.append(f"  Suggestion: {suggestion}")
+                    break
         elif "Syntax error:" in line_str or "TypeError:" in line_str or "Undefined" in line_str:
             enriched.append(line_str)
+            # Provide suggestions for syntax errors
+            if "unexpected token near `("" in line_str:
+                enriched.append("  Suggestion: Function calls must have a single argument list. Rewrite `f(x)(e, y)` as `f(x, e, y);`.")
         elif "Variable `" in line_str and "has not been declared" in line_str:
             enriched.append(line_str)
+            enriched.append("  Suggestion: Add `env e;` as the first statement in the rule/invariant that uses `e`.")
 
     return enriched if enriched else [l for l in output.splitlines() if l.strip() and not l.startswith("WARNING") and not l.startswith("Compiling")]
 

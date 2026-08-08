@@ -1,0 +1,17 @@
+{
+    "topics": [
+        {
+            "name": "type_check",
+            "messages": [
+                {
+                    "message": "Error in spec file (SavingsVault_attempt1.spec:150:58): Syntax error: unexpected token near `)`",
+                    "location": []
+                },
+                {
+                    "message": "Error in spec file (SavingsVault_attempt1.spec:176:12): Syntax error: unexpected token near `revert`",
+                    "location": []
+                }
+            ]
+        }
+    ]
+}
