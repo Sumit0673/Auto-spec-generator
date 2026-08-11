@@ -8,6 +8,7 @@ v2: error-memory persistence, static linter, deterministic methods-block,
 import argparse
 import hashlib
 import re
+import shutil
 import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -24,7 +25,7 @@ from google import genai
 
 from auto_spec.config import get_config
 from auto_spec.cvl_validator import ValidationResult, validate_cvl
-from auto_spec.error_memory import ErrorMemory
+from auto_spec.error_memory import ErrorMemory, normalize_error
 from auto_spec.lint import lint_spec, format_lint_errors
 from auto_spec.methods_block import build_methods_block
 from auto_spec.retrieval import contract_profile
@@ -37,10 +38,133 @@ from auto_spec.prompts.property_gpt import (
 )
 
 
+def _normalized_error_keys(feedback_lines: list[str]) -> frozenset[str]:
+    """Canonical, deduplicated set of normalized error keys for the current iteration.
+
+    Used for consecutive-recurrence detection: the same key in iteration N and
+    N+1 means the error survived a repair round unfixed.
+    """
+    return frozenset(
+        key
+        for key in (normalize_error(line) for line in feedback_lines if line and line.strip())
+        if key
+    )
+
+
+# ── Deterministic (no-LLM) repair of mechanically-correctable lint errors ────
+
+_REQUIRE_PARENS = re.compile(r"\brequire\s*\(([^;\n]*?)\)\s*;")
+_REQUIRE_MSG_STR = re.compile(r'\brequire\s+([^,;\n]+?)\s*,\s*"[^"]*"\s*;')
+
+
+def _apply_deterministic_repairs(spec_content: str, lint_errors) -> tuple[str, bool]:
+    """Surgical fixes for mechanically-correctable lint classes — NO LLM call.
+
+    Only unambiguous, safe rewrites are attempted (require-paren removal, dropping
+    Solidity error-string messages). Semantic errors are left for the LLM.
+    Returns (patched_spec, changed).
+    """
+    categories = {err.category for err in lint_errors}
+    if not (categories & {"require_parens", "invalid_require"}):
+        return spec_content, False
+    # Strip parens first so `require(x, "msg")` becomes `require x, "msg";`,
+    # then drop the unsupported Solidity error-string argument.
+    patched = _REQUIRE_PARENS.sub(
+        lambda m: f"require {m.group(1).strip()};", spec_content,
+    )
+    patched = _REQUIRE_MSG_STR.sub(
+        lambda m: f"require {m.group(1).strip()};", patched,
+    )
+    return (patched, patched != spec_content)
+
+
+# ── Legacy CVL hook/ghost syntax canonicalization ─────────────────────────────
+# The reference corpus (and therefore the LLM) uses older hook forms that the
+# installed Certora parser rejects. These are deterministic rewrites — the LLM
+# can never fix what its retrieved examples teach it, so the tool must.
+
+# 1. `hook Sstore admins(KEY address account) ...` → `admins[KEY address account]`
+#    (paren-key is legacy; the parser requires brackets).
+_HOOK_KEY_PAREN = re.compile(
+    r"\bhook\s+(Sstore|Sload)\s+"
+    r"([A-Za-z_]\w*(?:\s*\[[^\]]*\]\s*)*(?:\.[A-Za-z_]\w*)*)\s*\(\s*(KEY[^()]*)\)"
+)
+
+# 2. `hook Sstore x uint v STORAGE {` → `hook Sstore x uint v {` (redundant keyword).
+_HOOK_TRAILING_STORAGE = re.compile(r"\b(hook\s+(?:Sstore|Sload)\s+[^\n{]*?)\s+STORAGE\s*(\{)")
+
+
+def _canonicalize_cvl_syntax(spec: str) -> tuple[str, bool]:
+    """Convert legacy CVL hook syntax to the form the installed parser accepts.
+
+    Idempotent and purely syntactic — never changes semantics. Returns
+    (canonical_spec, changed).
+    """
+    original = spec
+    spec = _HOOK_KEY_PAREN.sub(
+        lambda m: f"hook {m.group(1)} {m.group(2)}[{m.group(3).strip()}]", spec,
+    )
+    spec = _HOOK_TRAILING_STORAGE.sub(r"\1\2", spec)
+    return (spec, spec != original)
+
+
+# ── Preserving ghost/hook/definition declarations across the parallel merge ───
+
+def _extract_top_level_decls(text: str) -> list[str]:
+    """Capture ghost/hook/definition/using/import/init_state declarations emitted
+    before the first rule/invariant in a draft fragment.
+
+    The parallel merge used to drop these, which left `sum(ghostMapping)` style
+    patterns with their ghost declaration missing — so the linter flagged the
+    (valid) pattern on every single repair round.
+    """
+    parts = re.split(r"(?=\b(?:rule|invariant)\s+\w+)", text)
+    preamble = parts[0] if parts else ""
+    body = re.sub(r"/\*.*?\*/|//.*", "", preamble, flags=re.S | re.M)
+    decls: list[str] = []
+    seen: set[str] = set()
+    for m in re.finditer(r"\b(ghost|hook|definition|using|import|init_state)\b", body):
+        j = m.end()
+        depth = 0
+        saw_structure = False
+        while j < len(body):
+            ch = body[j]
+            if ch == "{":
+                depth += 1
+                saw_structure = True
+            elif ch == "}":
+                depth -= 1
+                if depth == 0:
+                    j += 1
+                    break
+            elif ch == ";" and depth == 0:
+                j += 1
+                break
+            elif ch == "\n" and depth == 0 and not saw_structure:
+                # A keyword not followed by `{` or `;` on its line is prose
+                # ("we use ghost variables to track..."), not a declaration.
+                break
+            j += 1
+        decl = body[m.start():j].strip()
+        # A real CVL declaration is a statement (`...;`) or a braced block
+        # (`...{...}`); a bare prose line ("we use ghost variables...") is not.
+        if not decl or (not decl.endswith(";") and "{" not in decl):
+            continue
+        key = decl.split("{")[0].split(";")[0].strip()
+        if key and key not in seen:
+            seen.add(key)
+            decls.append(decl)
+    return decls
+
+
 def _run_certora_parse(spec_path: Path) -> Tuple[bool, str]:
     """Run `certoraParse --only-parse <spec_path>`.
     Returns (success, output). Success True if exit code 0.
+    If certoraParse is not available, treat as parse success to avoid blocking.
     """
+    if shutil.which("certoraParse") is None:
+        # certoraParse not installed; skip parse step
+        return True, ""
     try:
         result = subprocess.run(
             ["certoraParse", "--only-parse", str(spec_path)],
@@ -50,8 +174,6 @@ def _run_certora_parse(spec_path: Path) -> Tuple[bool, str]:
         )
         output = result.stdout + result.stderr
         return result.returncode == 0, output.strip()
-    except FileNotFoundError:
-        return False, "certoraParse not found in PATH"
     except subprocess.TimeoutExpired:
         return False, "certoraParse timed out"
     except Exception as e:
@@ -161,12 +283,20 @@ class SpecGenerator:
 
         if validate:
             prev_spec_hash = None
-            prev_feedback = None
+            consecutive_counts: dict[str, int] = {}
+            escalated_keys: set[str] = set()
             for attempt in range(max_repairs):
                 # Phase 2: run static linter before Certora
                 lint_errors = lint_spec(spec_content, contract_code)
                 if lint_errors:
-                    print(f"���🔍 Linter caught {len(lint_errors)} issues (skipping Certora)")
+                    print(f"🔍 Linter caught {len(lint_errors)} issues (skipping Certora)")
+                    # Mechanical classes are fixed deterministically — never ask the
+                    # LLM to remove require() parens or an error-string by hand.
+                    patched, mechanically_fixed = _apply_deterministic_repairs(spec_content, lint_errors)
+                    if mechanically_fixed:
+                        print("🛠  Deterministic repair applied; re-linting before any LLM call...")
+                        spec_content = _clean_cvl_spec(patched, det_methods_block, contract_code)
+                        continue
                     feedback_lines = [e.message for e in lint_errors]
                     error_source = "lint"
                 else:
@@ -184,21 +314,69 @@ class SpecGenerator:
                             validation_timeout, project.root, certora_config
                         )
                         if result.passed:
-                            print(f"��✅ Certora compilation passed on attempt {attempt + 1}")
+                            print(f"✅ Certora compilation passed on attempt {attempt + 1}")
                             self.error_memory.record(contract_hash, run_id, attempt, spec_content, [])
                             output_path_for_passed = output_path + "_passed" if output_path is not None else "Output/" + contract_name + ".spec"
                             self.save_spec(spec_content, output_path_for_passed, attempt + 1)
                             break
                         if _is_environment_error(result.output):
-                            print(f"��⚠��️  Environment error (not a spec issue): {result.output[:200]}")
+                            print(f"⚠️  Environment error (not a spec issue): {result.output[:200]}")
                             print("   Fix your environment and re-run. Aborting repair loop.")
                             break
                         feedback_lines = _enrich_certora_feedback(result.output, spec_content)
                         error_source = "certora"
 
-                # Record errors
+                # Snapshot the error keys known from PRIOR iterations/runs so the
+                # repair prompt can flag which of the current problems are repeats.
+                known_errors_before = self.error_memory.all_known_errors(contract_hash)
+                known_keys_before = frozenset(normalize_error(k) for k in known_errors_before if k)
+
+                # Record this iteration's errors (generalized) BEFORE the next LLM
+                # call, so the next iteration always sees them as known-bad.
                 self.error_memory.record(contract_hash, run_id, attempt, spec_content, feedback_lines)
                 known_errors = self.error_memory.all_known_errors(contract_hash)
+
+                # Consecutive-recurrence detection: the same normalized error
+                # surviving N iterations in a row means the LLM is not applying
+                # fixes (or fixes are being reverted). Escalate, then report.
+                error_keys = _normalized_error_keys(feedback_lines)
+                for key in list(consecutive_counts):
+                    if key not in error_keys:
+                        del consecutive_counts[key]
+                for key in error_keys:
+                    consecutive_counts[key] = consecutive_counts.get(key, 0) + 1
+                max_repeats = getattr(self.config, "MAX_CONSECUTIVE_SAME_ERRORS", 2)
+                repeat_key = next(
+                    (k for k, c in consecutive_counts.items() if c >= max_repeats),
+                    None,
+                )
+                if repeat_key is not None:
+                    if repeat_key in escalated_keys:
+                        # Deterministic fix + hard repair already tried for this
+                        # exact error and it is STILL recurring. Write a report so
+                        # the job is not silently abandoned, then stop.
+                        self._write_failure_report(
+                            contract_name, spec_content, feedback_lines,
+                            repeat_key, output_path, attempt,
+                        )
+                        print(f"🛑 Giving up on recurring error after escalation. "
+                              f"Report saved next to the spec output.")
+                        break
+                    escalated_keys.add(repeat_key)
+                    print(f"⚠️  Error '{repeat_key}' is recurring. Escalating to HARD REPAIR mode...")
+                    spec_content = self._call_llm(
+                        contract_code=contract_code,
+                        retrieved_context=retrieved_context,
+                        contract_name=contract_name,
+                        repair_feedback=feedback_lines,
+                        previous_spec=spec_content,
+                        known_errors=known_errors,
+                        known_keys_before=known_keys_before,
+                        hard_repair=True,
+                    )
+                    spec_content = _clean_cvl_spec(spec_content, det_methods_block, contract_code)
+                    validation_output_path = self.save_spec(spec_content, output_path, attempt + 1)
+                    continue
 
                 print(f"Static check failed (attempt {attempt+1}, source={error_source})")
                 spec_content = self._call_llm(
@@ -208,17 +386,16 @@ class SpecGenerator:
                     repair_feedback=feedback_lines,
                     previous_spec=spec_content,
                     known_errors=known_errors,
+                    known_keys_before=known_keys_before,
                 )
                 spec_content = _clean_cvl_spec(spec_content, det_methods_block, contract_code)
 
-                # Short-circuit if LLM returned identical spec and same feedback (stuck)
+                # Short-circuit if LLM returned a byte-identical spec (nothing changed)
                 current_hash = hashlib.sha256(spec_content.encode()).hexdigest()
-                current_feedback = tuple(feedback_lines)
-                if current_hash == prev_spec_hash and current_feedback == prev_feedback:
-                    print("��⚠��️  LLM returned identical spec and same feedback — repair loop stuck. Aborting.")
+                if current_hash == prev_spec_hash:
+                    print("⚠️  LLM returned an identical spec — repair loop stuck. Aborting.")
                     break
                 prev_spec_hash = current_hash
-                prev_feedback = current_feedback
 
                 validation_output_path = self.save_spec(spec_content, output_path, attempt + 1)
 
@@ -249,6 +426,43 @@ class SpecGenerator:
         target.write_text(spec_content)
         print(f"✓ CVL spec saved to: {target}")
         return target
+
+    def _write_failure_report(
+        self,
+        contract_name: str,
+        spec_content: str,
+        feedback_lines: list[str],
+        repeat_key: str,
+        output_path: Optional[str],
+        attempt: int,
+    ) -> Path:
+        """Write a human-readable report when the repair loop gives up, so the
+        job ends with actionable output instead of a silent abort."""
+        if output_path:
+            p = Path(output_path)
+            report = p.parent / f"{p.stem}_REPAIR_FAILED.md"
+        else:
+            report = Path(self.config.OUTPUT_DIR) / f"{contract_name}_REPAIR_FAILED.md"
+        report.parent.mkdir(parents=True, exist_ok=True)
+        report.write_text(
+            f"# Repair loop gave up — {contract_name}\n\n"
+            f"The error below recurred for {attempt + 1} consecutive repair rounds and "
+            "survived both the deterministic fixer and a hard-repair LLM pass. Continuing "
+            "would only burn more LLM calls, so the loop stopped. The last spec is saved "
+            "as the matching `*_attempt*.spec` file.\n\n"
+            "## Unfixable recurring error\n\n"
+            f"```\n{repeat_key}\n```\n\n"
+            "## Errors at give-up\n\n"
+            + "\n".join(f"- {e}" for e in feedback_lines)
+            + "\n\n## Common manual fixes by class\n\n"
+            "- `forbidden_sum` — declare the ghost it references (e.g. `ghost mapping(address => uint256) mirror_admins;`) and add the matching `hook`/`init_state` axiom.\n"
+            "- `undeclared_ghost` / `undeclared_env` — add the missing declaration or `env e;`.\n"
+            "- `require_parens` / `invalid_require` — write `require condition;` with no parentheses and no error string.\n"
+            "- `envfree_with_env` — drop the env argument from envfree getters.\n"
+            "- anything else — apply the error text directly to the last spec attempt.\n"
+        )
+        print(f"📝 Repair-failure report written to: {report}")
+        return report
 
     # ------------------------------------------------------------------
     # Phase 5: parallel per-function rule drafting + merge
@@ -356,7 +570,22 @@ class SpecGenerator:
                 seen_names.add(name)
                 rule_blocks.append(block)
 
-        return methods_block + "\n\n" + "\n\n".join(rule_blocks)
+        # Preserve ghost/hook/definition/using/import/init_state declarations the
+        # drafters emitted before their rules. Dropping them left `sum(ghostMapping)`
+        # patterns undeclared, so the linter re-flagged the same error every round.
+        top_decls: list[str] = []
+        seen_decls: set[str] = set()
+        for fragment in fragments.values():
+            for decl in _extract_top_level_decls(fragment):
+                key = decl.split("{")[0].strip()
+                if key and key not in seen_decls:
+                    seen_decls.add(key)
+                    top_decls.append(decl)
+
+        body = "\n\n".join(rule_blocks)
+        if top_decls:
+            body = "\n\n".join(top_decls) + "\n\n" + body
+        return methods_block + "\n\n" + body
 
     # ------------------------------------------------------------------
     # LLM call layer
@@ -370,6 +599,8 @@ class SpecGenerator:
         repair_feedback: Optional[list[str]] = None,
         previous_spec: Optional[str] = None,
         known_errors: list[str] | None = None,
+        known_keys_before: frozenset[str] | None = None,
+        hard_repair: bool = False,
     ) -> str:
         system_prompt, user_prompt = format_property_gpt_prompt(
             contract_code=contract_code,
@@ -388,7 +619,21 @@ class SpecGenerator:
             )
 
         if repair_feedback:
-            feedback_block = "\n".join(f"- {issue}" for issue in repair_feedback)
+            # Flag problems that have already been reported in a prior run/iteration:
+            # "RECURRING" tells the LLM the previous fix did not take effect and this
+            # exact error must be prioritized, not re-approached as if new.
+            recurring_keys = known_keys_before or frozenset()
+            annotated_issues = []
+            for issue in repair_feedback:
+                key = normalize_error(issue)
+                marker = (
+                    "  [RECURRING — already reported before; the previous fix did not "
+                    "take effect. This exact error MUST be fixed now, do not re-approach it as new.]"
+                    if key and key in recurring_keys
+                    else ""
+                )
+                annotated_issues.append(f"- {issue}{marker}")
+            feedback_block = "\n".join(annotated_issues)
             if previous_spec:
                 user_prompt = f"""{user_prompt}
 
@@ -407,6 +652,18 @@ class SpecGenerator:
                 flagged. Do not reintroduce any previously-fixed issue. Preserve every
                 correct construct from the previous spec exactly as-is.
                 """
+                if hard_repair:
+                    user_prompt += (
+                        "\n\n### HARD REPAIR MODE\n"
+                        "PREVIOUS repair attempts failed to fix the SAME errors listed above. "
+                        "The exact problems have recurred unchanged, which means a prior edit "
+                        "either missed them or re-introduced them. Make the SMALLEST possible "
+                        "change that resolves ONLY the listed problems — if the error says a "
+                        "ghost or declaration is missing, ADD that declaration; if it says a "
+                        "construct is forbidden, REMOVE or REPLACE that construct. Do not "
+                        "reformulate the surrounding rule. If a problem genuinely cannot be "
+                        "fixed, keep the rest of the spec valid and say so after SECTION 1."
+                    )
             else:
                 user_prompt += (
                     "\n\nThe previous spec you generated failed with these problems:\n"
@@ -533,6 +790,14 @@ def _clean_cvl_spec(spec_content: str, det_methods_block: str, contract_code: st
     # 11. Strip env arg from envfree function calls
     spec_content = _strip_env_from_envfree(spec_content)
 
+    # 12. Append missing semicolons on assert/require statements
+    spec_content = re.sub(
+        r'^(\s*(?:assert|require)\s+.+[^;{}\s])\s*$',
+        r'\1;',
+        spec_content,
+        flags=re.MULTILINE,
+    )
+
     return spec_content
 
 
@@ -591,7 +856,7 @@ def _enrich_certora_feedback(output: str, spec_content: str) -> list[str]:
 
     # Mapping of error substrings to helpful suggestions
     error_suggestions = {
-        "unexpected token near `("": "Function calls must have a single argument list. Rewrite `f(x)(e, y)` as `f(x, e, y);`.",
+        "unexpected token near `(": "Function calls must have a single argument list. Rewrite `f(x)(e, y)` as `f(x, e, y);`.",
         "require` in `require(": "Remove parentheses around condition. Write `require condition;` not `require(condition);`.",
         "Variable `e` has not been declared": "Add `env e;` as the first statement in the rule/invariant that uses `e`.",
         "sum()": "Do not use `sum()` on raw mappings. Use a ghost variable with a hook instead.",
@@ -617,7 +882,7 @@ def _enrich_certora_feedback(output: str, spec_content: str) -> list[str]:
         elif "Syntax error:" in line_str or "TypeError:" in line_str or "Undefined" in line_str:
             enriched.append(line_str)
             # Provide suggestions for syntax errors
-            if "unexpected token near `("" in line_str:
+            if 'unexpected token near `("' in line_str:
                 enriched.append("  Suggestion: Function calls must have a single argument list. Rewrite `f(x)(e, y)` as `f(x, e, y);`.")
         elif "Variable `" in line_str and "has not been declared" in line_str:
             enriched.append(line_str)

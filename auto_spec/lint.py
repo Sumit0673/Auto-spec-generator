@@ -36,6 +36,7 @@ def lint_spec(spec_content: str, contract_code: str) -> list[LintError]:
     errors.extend(_check_sinvoke(spec_content))
     errors.extend(_check_envfree_with_env(spec_content))
     errors.extend(_check_require_parens(spec_content))
+    errors.extend(_check_missing_semicolon(spec_content))
     return errors
 
 
@@ -72,21 +73,60 @@ def _check_keyword_leak(spec: str) -> list[LintError]:
     return errors
 
 
+def _mapping_var_names(contract_code: str) -> list[str]:
+    """Names of public mappings, robust to nested and array-valued mappings.
+
+    Scans each `mapping(` for its matching closing paren (any nesting depth),
+    then expects `public <name>`. Non-public mappings produce no getter, so they
+    are intentionally skipped.
+    """
+    names: list[str] = []
+    for m in re.finditer(r"\bmapping\s*\(", contract_code):
+        depth, i = 1, m.end()
+        while i < len(contract_code) and depth:
+            ch = contract_code[i]
+            if ch == "(":
+                depth += 1
+            elif ch == ")":
+                depth -= 1
+            i += 1
+        rest = contract_code[i:]
+        mm = re.match(r"\s+public\s+(?:constant\s+)?(\w+)", rest)
+        if mm:
+            names.append(mm.group(1))
+    return names
+
+
 def _parse_public_declarations(contract_code: str) -> list[tuple[str, str]]:
     """Parse public state vars and mappings from Solidity source.
 
     Returns list of (name, kind) where kind is 'variable' or 'mapping'.
+    Handles builtin AND custom types (structs, enums, contract types, arrays),
+    so contracts like `IERC20 public token` or `Foo[] public list` are not
+    silently invisible to the getter-completeness checks.
     """
     decls: list[tuple[str, str]] = []
-    # public mappings: mapping(X => Y) public name;
-    for m in re.finditer(r'mapping\s*\([^)]+\)\s+public\s+(\w+)', contract_code):
-        decls.append((m.group(1), "mapping"))
-    # public variables: type public name;
+    for name in _mapping_var_names(contract_code):
+        decls.append((name, "mapping"))
+    seen = {name for name, _ in decls}
+    # builtin scalar types (exact match)
     for m in re.finditer(
-        r'(?:uint\d*|int\d*|address|bool|bytes\d*|string)\s+public\s+(\w+)',
+        r"\b(?:(uint\d*|int\d*|address|bool|bytes\d*|string))\s+public\s+(?:constant\s+)?(\w+)",
         contract_code,
     ):
-        decls.append((m.group(1), "variable"))
+        name = m.group(2)
+        if name not in seen:
+            seen.add(name)
+            decls.append((name, "variable"))
+    # general fallback for custom/struct/enum/array-typed public vars
+    for m in re.finditer(
+        r"\b([A-Za-z_][A-Za-z0-9_]*(?:\s*\[\s*\d*\s*\])*)\s+public\s+(?:constant\s+)?(\w+)\s*[=;]",
+        contract_code,
+    ):
+        name = m.group(2)
+        if name not in seen:
+            seen.add(name)
+            decls.append((name, "variable"))
     return decls
 
 
@@ -117,13 +157,30 @@ def _check_getter_completeness(spec: str, contract_code: str) -> list[LintError]
     return errors
 
 
+def _ghost_names(spec: str) -> set[str]:
+    """Names of ghost variables declared in a spec.
+
+    Handles any ghost type (not just `ghost uint256 x;`): mapping ghosts like
+    `ghost mapping(address => uint256) mirror_admins;` and array ghosts. The name
+    is the last identifier before the `;`/`{` that ends the declaration.
+    """
+    names: set[str] = set()
+    for m in re.finditer(r"\bghost\s+", spec):
+        end = spec.find(";", m.end())
+        if end == -1:
+            end = len(spec)
+        tokens = re.findall(r"[A-Za-z_]\w*", spec[m.end():end])
+        if tokens:
+            names.add(tokens[-1])
+    return names
+
+
 def _check_forbidden_constructs(spec: str) -> list[LintError]:
     """Check 3: reject sum() over non-ghost identifiers."""
     errors = []
-    # Find ghost declarations
-    ghosts = set(re.findall(r'ghost\s+\w+\s+(\w+)', spec))
+    ghosts = _ghost_names(spec)
     # Find sum( usage
-    for m in re.finditer(r'\bsum\s*\(\s*(\w+)', spec):
+    for m in re.finditer(r"\bsum\s*\(\s*(\w+)", spec):
         target = m.group(1)
         if target not in ghosts:
             errors.append(LintError(
@@ -303,7 +360,7 @@ def _check_undeclared_ghost(spec: str) -> list[LintError]:
     declaration. Heuristic: any identifier starting with `ghost` that is not
     covered by a ghost declaration in the spec.
     """
-    declared: set[str] = set(re.findall(r'\bghost\s+\S+\s+(\w+)\s*[;{]', spec))
+    declared: set[str] = _ghost_names(spec)
     used: set[str] = set(re.findall(r'\b(ghost\w+)\b', spec))
     return [
         LintError(
@@ -366,6 +423,21 @@ def _check_require_parens(spec: str) -> list[LintError]:
                 "require_parens",
                 f"CVL `require` in `{line.strip()}` should not use parentheses. "
                 "Write `require condition;` not `require(condition);`",
+                line=i,
+            ))
+    return errors
+
+
+def _check_missing_semicolon(spec: str) -> list[LintError]:
+    """Check 17: assert/require statements must end with a semicolon."""
+    errors = []
+    for i, line in enumerate(spec.splitlines(), 1):
+        stripped = line.strip()
+        if re.match(r'^(assert|require)\s+', stripped) and not stripped.endswith(';') and not stripped.endswith('{'):
+            errors.append(LintError(
+                "missing_semicolon",
+                f"`{stripped}` is missing a trailing semicolon. "
+                "Every `assert` and `require` statement must end with `;`",
                 line=i,
             ))
     return errors

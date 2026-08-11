@@ -80,5 +80,31 @@ def load_project(
 
 
 def detect_contract_name(source: str, fallback: str) -> str:
-    match = CONTRACT_PATTERN.search(source)
-    return match.group(1) if match else fallback
+    """Best-guess the contract to audit.
+
+    Preference order:
+      1. A contract whose name matches the file stem (most .sol files follow
+         one-contract-per-file naming) — takes priority over the first match.
+      2. The largest contract by source span — in multi-contract files the
+         target is usually the biggest, and the first match is often an
+         interface/library/helper.
+      3. The fallback (file stem).
+    """
+    matches = list(CONTRACT_PATTERN.finditer(source))
+    if not matches:
+        return fallback
+
+    if fallback:
+        for m in matches:
+            if m.group(1) == fallback:
+                return fallback
+
+    if len(matches) == 1:
+        return matches[0].group(1)
+
+    best_name, best_size = matches[0].group(1), 0
+    for idx, m in enumerate(matches):
+        end = matches[idx + 1].start() if idx + 1 < len(matches) else len(source)
+        if end - m.start() > best_size:
+            best_name, best_size = m.group(1), end - m.start()
+    return best_name

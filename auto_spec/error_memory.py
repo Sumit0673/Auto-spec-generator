@@ -13,28 +13,56 @@ import time
 import uuid
 from pathlib import Path
 
-# ── Error generalization ──────────────────────────────────────────────────────
-# Strip position/name specifics before storing so the same mistake on a
-# different line or with a different identifier still matches as a known error.
-_GENERALIZATIONS: list[tuple[re.Pattern, str]] = [
-    # "Line 189 `invariant foo() {` -> Error: msg"  →  "msg"
-    (re.compile(r'^Line \d+\s+`[^`]*`\s*->\s*(?:Error:\s*)?'), ''),
-    # "Variable `ghostXxx` has not been declared"  →  generic
-    (re.compile(r"Variable `\w+` has not been declared"),
-     "Variable has not been declared — declare all variables "
-     "(e.g. `env e;` inside rules, `ghost uint256 name;` before methods block) before use"),
-    # Strip standalone "Error: " prefix
-    (re.compile(r'^Error:\s*'), ''),
-    # Strip line references embedded in messages
-    (re.compile(r'\bline \d+\b', re.I), ''),
-]
+# ── Error normalization ──────────────────────────────────────────────────────
+# Strip position/name specifics so the same mistake on a different line, rule,
+# or identifier still collapses to ONE canonical key. Without this, lint
+# messages that embed the offending rule name or code line are stored as
+# distinct errors and recurrence is never recognized.
+
+_LINE_REF = re.compile(r"\bline \d+\b", re.I)
+# "Line 189 `invariant foo() {` -> Error: msg"  →  "msg"
+_CERTORA_LINE_PREFIX = re.compile(r"^line \d+\s+`[^`]*`\s*->\s*(?:error:\s*)?", re.I)
+# "Rule `grantAdmin_revertConditions` references..."  →  "rule references..."
+_NAME_ANCHOR = re.compile(r"\b(rule|invariant|definition|hook|ghost|definition)\s+`\w+`", re.I)
+# certora: "could not type expression \"withdraw(amount)\", message: Missing env..." → the "message:" part
+_CERTORA_EXPR = re.compile(r'^\s*could not type expression "[^"]*",\s*message:\s*', re.I)
+# "Variable `ghostXxx` has not been declared"  →  generic guidance
+_VAR_DECL = re.compile(r"variable\s+`\w+`\s+has not been declared", re.I)
+# Any remaining backticked code snippet: replace with a neutral marker
+_BACKTICKED = re.compile(r"`[^`]*`")
+# Certora/solc "(some reason)" parentheticals appended to otherwise identical messages
+_ERR_PREFIX = re.compile(r"^error:\s*", re.I)
 
 
+def normalize_error(msg: str) -> str:
+    """Map an error message to a canonical key.
+
+    Idempotent and order-independent: the same semantic error — from a
+    different rule, line, or code snippet — always yields the same key.
+    """
+    msg = msg.strip()
+    if not msg:
+        return ""
+    msg = msg.lower()
+    msg = _LINE_REF.sub("", msg)
+    msg = _CERTORA_LINE_PREFIX.sub("", msg)
+    msg = _CERTORA_EXPR.sub("", msg)
+    msg = _VAR_DECL.sub(
+        "variable has not been declared — declare all variables "
+        "(e.g. env e; inside rules, ghost uint256 name; before the methods block) before use",
+        msg,
+    )
+    msg = _NAME_ANCHOR.sub(r"\1", msg)
+    msg = _BACKTICKED.sub("…", msg)
+    msg = _ERR_PREFIX.sub("", msg)
+    # collapse whitespace and trailing punctuation
+    msg = re.sub(r"\s+", " ", msg).strip(" .;:-")
+    return msg
+
+
+# Backwards-compatible alias (older callers used _generalize).
 def _generalize(msg: str) -> str:
-    """Strip position/identifier specifics; keep the semantic error pattern."""
-    for pat, repl in _GENERALIZATIONS:
-        msg = pat.sub(repl, msg)
-    return msg.strip()
+    return normalize_error(msg)
 
 
 class ErrorMemory:

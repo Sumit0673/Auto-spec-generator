@@ -68,6 +68,12 @@ class Config:
     SIMILARITY_THRESHOLD: float = 0.3
     MIN_RETRIEVAL_SIMILARITY: float = 0.75
 
+    # Repair-loop configuration
+    # Abort the repair loop when the SAME normalized error recurs this many
+    # consecutive iterations — evidence the LLM is not applying fixes (or fixes
+    # are being reverted), so continuing only burns LLM calls.
+    MAX_CONSECUTIVE_SAME_ERRORS: int = 2
+
     # Output Configuration
     OUTPUT_DIR: Path = Path.cwd() / "auto_spec_output"
     SAVE_SPEC_FILE: bool = True
