@@ -1,9 +1,3 @@
-"""Deterministic methods-block builder — removes LLM from methods-block generation entirely.
-
-Parses Solidity source for public state vars, mappings, and function signatures,
-then emits a correct methods block that never contains Solidity keywords.
-"""
-
 from __future__ import annotations
 
 import re

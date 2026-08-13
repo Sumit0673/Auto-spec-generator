@@ -15,6 +15,7 @@ if __package__ in {None, ""}:
 
 from auto_spec import SpecGenerator, __version__
 from auto_spec.config import get_config
+from auto_spec.generator import _exit_code_for_status
 from auto_spec.vector_db import VectorDBManager
 from auto_spec.evaluation import run_evaluation
 
@@ -35,13 +36,13 @@ def cmd_generate(args):
             raise RuntimeError(f"Configuration error: {error_msg}")
 
         generator = SpecGenerator(config)
-        
+
         spec = generator.generate(
             contract_path=args.contract,
             query=args.query,
             top_k=args.top_k,
             output_path=args.output,
-            validate=args.check,
+            validate=not args.no_check,
             certora_contract_name=args.contract_name,
             validation_timeout=args.validation_timeout,
             project_root=args.project_root,
@@ -49,13 +50,25 @@ def cmd_generate(args):
             certora_config=args.certora_config,
             parallel=not getattr(args, 'no_parallel', False),
         )
-        
+
         if not args.output and not args.quiet:
             print("\n" + "="*80)
             print("GENERATED CVL SPECIFICATION:")
             print("="*80)
             print(spec)
-    
+
+        status = getattr(generator, "last_status", "skipped")
+        if status == "passed":
+            print("✅ Spec generated and verified by Certora compilation.")
+        elif status == "skipped":
+            if not args.quiet:
+                print("⚠️  Validation skipped (--no-check). Spec is unverified.")
+        elif status == "unverified":
+            print("⚠️  Spec generated but NOT verified: Certora unavailable or an environment error.", file=sys.stderr)
+        else:  # failed
+            print("✗ Spec generated but validation failed. Check the repair report / latest attempt.", file=sys.stderr)
+        sys.exit(_exit_code_for_status(status))
+
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
@@ -132,20 +145,28 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Generate spec from contract
+  # Generate spec and verify it with Certora (default; exit 0 only on pass)
   auto-spec generate path/to/MyToken.sol
-  
+
+  # Skip Certora verification (exit 0; spec is unverified)
+  auto-spec generate path/to/MyToken.sol --no-check
+
   # Generate with custom query
   auto-spec generate path/to/MyToken.sol --query "ERC20 transfer rules"
-  
+
   # Save to specific path
   auto-spec generate path/to/MyToken.sol -o output/MyToken.spec
-  
+
   # Setup vector database
   auto-spec setup
-  
+
   # Show configuration
   auto-spec config
+
+Exit codes (generate):
+  0  spec generated and verified, or validation skipped via --no-check
+  1  validation requested but could not be made to pass
+  2  spec generated but NOT verified (Certora unavailable / environment error)
         """
     )
     
@@ -160,12 +181,13 @@ Examples:
     gen_parser.add_argument("--top_k", type=int, default=3, help="Number of reference specs (default: 3)")
     gen_parser.add_argument("--output", "-o", help="Output path for .spec file")
     gen_parser.add_argument("--quiet", action="store_true", help="Don't print spec to stdout")
-    gen_parser.add_argument("--check", action="store_true", help="Compile the generated CVL with Certora")
+    gen_parser.add_argument("--no-check", action="store_true", help="Skip Certora compilation of the generated spec (exit 0; spec is unverified)")
+    gen_parser.add_argument("--check", action="store_true", help=argparse.SUPPRESS)  # deprecated no-op; validation is default-on
     gen_parser.add_argument("--contract-name", help="Contract name passed to Certora (defaults to the file stem)")
     gen_parser.add_argument("--validation-timeout", type=int, default=300, help="Certora compilation timeout in seconds")
     gen_parser.add_argument("--project-root", help="Solidity project root (defaults to the contract directory)")
     gen_parser.add_argument("--remappings", help="Foundry remappings.txt file")
-    gen_parser.add_argument("--certora-config", help="Existing Certora .conf/.json input for --check")
+    gen_parser.add_argument("--certora-config", help="Existing Certora .conf/.json input for validation")
     gen_parser.add_argument("--no-parallel", action="store_true", help="Disable parallel per-function drafting")
     gen_parser.add_argument("--db-path", help="Path to Chroma DB (overrides CHROMA_DB_PATH)")
     gen_parser.add_argument("--temperature", type=float, help="LLM sampling temperature (overrides config)")

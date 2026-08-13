@@ -176,17 +176,20 @@ def _ghost_names(spec: str) -> set[str]:
 
 
 def _check_forbidden_constructs(spec: str) -> list[LintError]:
-    """Check 3: reject sum() over non-ghost identifiers."""
+    """Check 3: reject sum() — CVL has no sum() builtin."""
     errors = []
-    ghosts = _ghost_names(spec)
-    # Find sum( usage
-    for m in re.finditer(r"\bsum\s*\(\s*(\w+)", spec):
+    for m in re.finditer(r"\bsum\s*\(\s*(\w+)\s*\)", spec):
         target = m.group(1)
-        if target not in ghosts:
-            errors.append(LintError(
-                "forbidden_sum",
-                f"`sum({target})` — sum() can only be applied to ghost variables, not `{target}`",
-            ))
+        errors.append(LintError(
+            "forbidden_sum",
+            (
+                f"`sum({target})` is invalid — CVL has no `sum()` builtin. "
+                "To track an aggregate, declare a `ghost mathint` counter and "
+                "update it in a `hook Sstore` block (e.g. increment on true, "
+                "decrement on false). Then reference the ghost directly in "
+                "the invariant instead of `sum()`."
+            ),
+        ))
     return errors
 
 
