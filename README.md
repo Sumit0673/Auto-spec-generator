@@ -21,11 +21,11 @@ The live pipeline implements this architecture with practical engineering tradeo
 | Stage | Implementation | Key Detail |
 |-------|---------------|------------|
 | **1. Profile & Retrieve** | `SolidityProject` + ChromaDB | Fingerprint contract → query vector DB for top-k similar verified specs |
-| **2. Deterministic Methods Block** | `methods_block.py` | Pure AST parsing → no LLM. Getters marked `envfree`, no Solidity keywords in CVL |
+| **2. Deterministic Methods Block** | `methods_block.py` | Pure AST parsing → no LLM.|
 | **3. Parallel Rule Drafting** | `generator.py:_parallel_generate` | One LLM call per `external`/`public` function + one cross-cutting call |
 | **4. Merge & Dedupe** | `_merge_specs` | Merges fragments by rule/invariant name; preserves ghost/hook declarations |
-| **5. Auto-Repair (17 checks)** | `lint.py` + `_clean_cvl_spec` | Regex fixes (parens, `address(0)`→`0x0`, mapping syntax) + LLM semantic repair |
-| **6. Certora Validation** | `certoraParse` + `certoraRun` | Loop until compiles; error memory prevents repeat failures; exit codes reflect status |
+| **5. Auto-Repair** | `lint.py` + `_clean_cvl_spec` | Regex fixes + LLM semantic repair |
+| **6. Certora Validation** | `certoraRun` | Loop if fails certora validation; error memory prevents repeat failures; exit codes reflect status |
 
 ---
 
@@ -47,7 +47,7 @@ It doesn't just "ask ChatGPT to write a spec." It combines:
 
 - 🔍 **RAG** — retrieves similar verified specs from a vector database as reference
 - 🧠 **LLM** — drafts rules informed by real, proven verification patterns
-- 🔧 **Deterministic repair** — a 17-check static linter + auto-fix loop catches what the LLM misses
+- 🔧 **Deterministic repair** — a linter + auto-fix loop catches what the LLM misses
 - ✅ **Validation** — the output compiles against Certora, with automatic retry on failure
 
 ---
@@ -55,23 +55,23 @@ It doesn't just "ask ChatGPT to write a spec." It combines:
 ## 🏗️ Architecture
 
 ```
-Solidity Contract ──►┌─────────────────┐
-                     │  1. Profile &    │
-                     │  Retrieve (RAG) │  ← Vector DB of verified specs
+                     ┌─────────────────┐
+Solidity Contract ──►│  1. Profile &   │
+                     │  Retrieve (RAG) │  
                      └────────┬────────┘
                               │
                      ┌────────▼────────┐
-                     │  2. Deterministic│
+                     │ 2. Deterministic│
                      │  Methods Block  │  ← No LLM — pure parsing
                      └────────┬────────┘
                               │
                      ┌────────▼────────┐
-                     │  3. Parallel     │
+                     │  3. Parallel    │
                      │  Rule Drafting  │  ← One LLM call per function
                      └────────┬────────┘
                               │
                      ┌────────▼────────┐
-                     │  4. CVL Linter  │  ← 17 static checks
+                     │  4. CVL Linter  │
                      │  + Auto-Repair  │  ← Deterministic fixes + LLM repair
                      └────────┬────────┘
                               │
@@ -158,7 +158,7 @@ The current runtime pipeline implements the **first two agents** (Static Analysi
 - Produces a **deterministic Abstract Syntax Tree**
 - Outputs: state variables with visibility, complete function call graph, all `revert`/`require`/`assert` conditions
 - **Why it matters:** Eliminates LLM hallucinations on variable names, function signatures, and visibility boundaries. The `methods {}` block is built from this — zero LLM involvement.
-- **Status:** ✅ **Implemented**
+- **Status:** 🔮 **Planned**
 
 ### **Agent 2: Intent Extractor (Contextual RAG)**
 > *Formal verification needs intent. Code alone doesn't tell you what the contract **should** do.*
@@ -169,7 +169,7 @@ The current runtime pipeline implements the **first two agents** (Static Analysi
   - Economic invariants: *"Users must maintain 150% collateral ratio at all times"*
   - Access control: *"Admin cannot directly withdraw user deposits"*
 - **Why it matters:** These semantic guardrails translate human business logic into mathematical theorems for the next stage.
-- **Status:** ✅ **Implemented** (spec-based RAG)
+- **Status:** 🔮 **Planned**
 
 ### **Agent 3: Invariant Miner (Dynamic Testing)**
 > *Some invariants only emerge under execution pressure.*
@@ -192,7 +192,6 @@ The current runtime pipeline implements the **first two agents** (Static Analysi
   3. **Discovered Mathematical Axioms** (from Agent 3)
 - Feeds into a code-generation model optimized for formal logic
 - Outputs a **fully compilable CVL `.spec`** with methods blocks, state invariants, and transaction rules
-- **Status:** 🔄 **Partial** (LLM drafting + repair loop)
 
 > **Why this matters:** Each agent solves a subproblem that pure LLM text generation cannot — static analysis eliminates hallucinations, RAG grounds intent in documentation, dynamic mining finds invariants only visible under execution, and the synthesizer compiles it all into verified formal logic.
 
