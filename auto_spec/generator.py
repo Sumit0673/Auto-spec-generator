@@ -49,35 +49,6 @@ def _normalized_error_keys(feedback_lines: list[str]) -> frozenset[str]:
     )
 
 
-# # ── Deterministic (no-LLM) repair of mechanically-correctable lint errors ────
-
-# _REQUIRE_PARENS = re.compile(r"\brequire\s*\(([^;\n]*?)\)\s*;")
-# _REQUIRE_MSG_STR = re.compile(r'\brequire\s+([^,;\n]+?)\s*,\s*"[^"]*"\s*;')
-
-
-# def _apply_deterministic_repairs(spec_content: str, lint_errors) -> tuple[str, bool]:
-#     """Surgical fixes for mechanically-correctable lint classes — NO LLM call.
-
-#     Only unambiguous, safe rewrites are attempted (require-paren removal, dropping
-#     Solidity error-string messages). Semantic errors are left for the LLM.
-#     Returns (patched_spec, changed).
-#     """
-#     categories = {err.category for err in lint_errors}
-#     if not (categories & {"require_parens", "invalid_require"}):
-#         return spec_content, False
-#     # Strip parens first so `require(x, "msg")` becomes `require x, "msg";`,
-#     # then drop the unsupported Solidity error-string argument.
-#     patched = _REQUIRE_PARENS.sub(
-#         lambda m: f"require {m.group(1).strip()};", spec_content,
-#     )
-#     patched = _REQUIRE_MSG_STR.sub(
-#         lambda m: f"require {m.group(1).strip()};", patched,
-#     )
-#     return (patched, patched != spec_content)
-
-
-# ── Preserving ghost/hook/definition declarations across the parallel merge ───
-
 class SpecGenerator:
     """Generate CVL specifications for Solidity contracts."""
 
@@ -107,8 +78,8 @@ class SpecGenerator:
         project_root: Optional[str] = None,
         remappings_file: Optional[str] = None,
         certora_config: Optional[str] = None,
-        max_repairs: int = 5,
-        parallel: bool = True,
+        max_repairs: int = 3,
+        parallel: bool = False,
     ) -> str:
 
         project = load_project(contract_path, project_root, remappings_file)
@@ -207,10 +178,10 @@ class SpecGenerator:
                     )
                     self.last_validation = result
                     if result.passed:
-                        print(f"✅ Certora compilation passed on attempt {attempt + 1}")
+                        print(f"✅ Certora compilation passed on attempt {attempt}")
                         self.error_memory.record(contract_hash, run_id, attempt, spec_content, [])
                         output_path_for_passed = output_path + "_passed" if output_path is not None else "Output/" + contract_name + ".spec"
-                        self.save_spec(spec_content, output_path_for_passed, attempt + 1)
+                        self.save_spec(spec_content, output_path_for_passed, attempt)
                         final_status = "passed"
                         break
                     if _is_environment_error(result.output):
@@ -221,50 +192,6 @@ class SpecGenerator:
                     feedback_lines = _enrich_certora_feedback(result.output, spec_content)
                     error_source = "certora"
 
-
-                # known_errors_before = self.error_memory.all_known_errors(contract_hash)
-                # known_keys_before = frozenset(normalize_error(k) for k in known_errors_before if k)
-
-
-                # self.error_memory.record(contract_hash, run_id, attempt, spec_content, feedback_lines)
-                # known_errors = self.error_memory.all_known_errors(contract_hash)
-
-                # error_keys = _normalized_error_keys(feedback_lines)
-                # for key in list(consecutive_counts):
-                #     if key not in error_keys:
-                #         del consecutive_counts[key]
-                # for key in error_keys:
-                #     consecutive_counts[key] = consecutive_counts.get(key, 0) + 1
-                # max_repeats = getattr(self.config, "MAX_CONSECUTIVE_SAME_ERRORS", 2)
-                # repeat_key = next(
-                #     (k for k, c in consecutive_counts.items() if c >= max_repeats),
-                #     None,
-                # )
-                # if repeat_key is not None:
-                #     if repeat_key in escalated_keys:
-                #         self._write_failure_report(
-                #             contract_name, spec_content, feedback_lines,
-                #             repeat_key, output_path, attempt,
-                #         )
-                #         print(f"🛑 Giving up on recurring error after escalation. "
-                #               f"Report saved next to the spec output.")
-                #         final_status = "failed"
-                    
-                #     escalated_keys.add(repeat_key)
-                #     print(f"⚠️  Error '{repeat_key}' is recurring. Escalating to HARD REPAIR mode...")
-                #     spec_content = self._call_llm(
-                #         contract_code=contract_code,
-                #         retrieved_context=retrieved_context,
-                #         contract_name=contract_name,
-                #         repair_feedback=feedback_lines,
-                #         previous_spec=spec_content,
-                #         known_errors=known_errors,
-                #         known_keys_before=known_keys_before,
-                #         hard_repair=True,
-                #     )
-                #     spec_content = _clean_cvl_spec(spec_content, det_methods_block, contract_code)
-                #     validation_output_path = self.save_spec(spec_content, output_path, attempt + 1)
-                #     continue
 
                 print(f"Static check failed (attempt {attempt+1}, source={error_source})")
                 spec_content = _call_llm(
@@ -320,44 +247,7 @@ class SpecGenerator:
         print(f"✓ CVL spec saved to: {target}")
         return target
 
-    # def _write_failure_report(
-    #     self,
-    #     contract_name: str,
-    #     spec_content: str,
-    #     feedback_lines: list[str],
-    #     repeat_key: str,
-    #     output_path: Optional[str],
-    #     attempt: int,
-    # ) -> Path:
-    #     """Write a human-readable report when the repair loop gives up, so the
-    #     job ends with actionable output instead of a silent abort."""
-    #     if output_path:
-    #         p = Path(output_path)
-    #         report = p.parent / f"{p.stem}_REPAIR_FAILED.md"
-    #     else:
-    #         report = Path(self.config.OUTPUT_DIR) / f"{contract_name}_REPAIR_FAILED.md"
-    #     report.parent.mkdir(parents=True, exist_ok=True)
-    #     report.write_text(
-    #         f"# Repair loop gave up — {contract_name}\n\n"
-    #         f"The error below recurred for {attempt + 1} consecutive repair rounds and "
-    #         "survived both the deterministic fixer and a hard-repair LLM pass. Continuing "
-    #         "would only burn more LLM calls, so the loop stopped. The last spec is saved "
-    #         "as the matching `*_attempt*.spec` file.\n\n"
-    #         "## Unfixable recurring error\n\n"
-    #         f"```\n{repeat_key}\n```\n\n"
-    #         "## Errors at give-up\n\n"
-    #         + "\n".join(f"- {e}" for e in feedback_lines)
-    #         + "\n\n## Common manual fixes by class\n\n"
-    #         "- `forbidden_sum` — declare the ghost it references (e.g. `ghost mapping(address => uint256) mirror_admins;`) and add the matching `hook`/`init_state` axiom.\n"
-    #         "- `undeclared_ghost` / `undeclared_env` — add the missing declaration or `env e;`.\n"
-    #         "- `require_parens` / `invalid_require` — write `require condition;` with no parentheses and no error string.\n"
-    #         "- `envfree_with_env` — drop the env argument from envfree getters.\n"
-    #         "- anything else — apply the error text directly to the last spec attempt.\n"
-    #     )
-    #     print(f"📝 Repair-failure report written to: {report}")
-    #     return report
-
-
+    
 # ponytail: simple keyword match — covers known certoraRun/solc error messages.
 # If Certora invents new env-error phrasing, add it here.
 _ENV_ERROR_PATTERNS = [

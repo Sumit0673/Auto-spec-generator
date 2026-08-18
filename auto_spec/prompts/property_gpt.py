@@ -39,12 +39,11 @@ Exception: the retrieved examples are excerpts and may omit the methods block. M
 ==============================================================================
 OUTPUT FORMAT
 ==============================================================================
+ONLY and ONLY CVL code should be there in the output.
 
-SECTION 1: CANDIDATE PROPERTIES OVERVIEW
+SECTION 1: FORMAL CVL SPECIFICATION
 
-SECTION 2: FORMAL CVL SPECIFICATION
-
-SECTION 2 MUST contain ONLY valid CVL code.
+SECTION 1 MUST contain ONLY valid CVL code.
 
 The top-level layout MUST be exactly
 
@@ -179,7 +178,7 @@ Placeholder syntax
 
 Invented keywords
 
-Natural-language explanations inside SECTION 2
+Natural-language explanations mixed into CVL output
 
 ==============================================================================
 GENERAL RULES
@@ -329,8 +328,12 @@ def analyze_solidity_contract(contract_code: str, contract_name: str = "TargetCo
 
 
 def extract_cvl_spec(raw_response: str) -> str:
-    match = re.search(r"```(?:cvl)?\s*\n(.*?)```", raw_response, re.S)
-    content = match.group(1) if match else raw_response
+    # Strip reasoning/thinking tags emitted by reasoning models (Nemotron, DeepSeek, etc.)
+    cleaned = re.sub(r'<think>.*?</think>', '', raw_response, flags=re.S)
+    cleaned = re.sub(r'<reasoning>.*?</reasoning>', '', cleaned, flags=re.S)
+
+    match = re.search(r"```(?:cvl)?\s*\n(.*?)```", cleaned, re.S)
+    content = match.group(1) if match else cleaned
     anchor = re.search(r'\b(methods\s*\{|import\s|using\s)', content)
     if anchor:
         content = content[anchor.start():]
@@ -392,13 +395,7 @@ Below is the Solidity contract source code for which you need to synthesize CVL 
 
 Use the retrieved CVL specifications as your primary syntax reference.
 
-Analyze the Solidity contract and produce:
-
-SECTION 1
-- Brief natural-language summary of the strongest candidate properties.
-
-SECTION 2
-- A compilable CVL specification.
+Analyze the Solidity contract and produce a compilable CVL specification.
 
 Requirements
 
@@ -410,10 +407,9 @@ Requirements
 6. Use only CVL constructs demonstrated by the retrieved examples.
 7. Do not invent functions or state variables.
 8. Prefer fewer correct properties over many speculative ones.
-9. Output only CVL inside SECTION 2.
-10. The generated specification should compile under Certora CLI 8.17.x.
+9. The generated specification should compile under Certora CLI 8.17.x.
 
-Begin your response with "SECTION 1:" and "SECTION 2:" markers.
+Output ONLY the CVL code inside a ```cvl code block. No natural language, no explanations, no thinking.
 """
 
     return PROPERTY_GPT_SYSTEM_PROMPT, user_prompt

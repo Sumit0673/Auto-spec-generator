@@ -9,8 +9,10 @@ PROVIDER_DEFAULTS: dict[str, tuple[str, str, str | None]] = {
     "openai":     ("OPENAI_API_KEY",     "gpt-4o-mini",                    None),
     "openrouter": ("OPENROUTER_API_KEY", "openai/gpt-4o-mini",            "https://openrouter.ai/api/v1"),
     "deepseek":   ("DEEPSEEK_API_KEY",   "deepseek-chat",                 "https://api.deepseek.com"),
-    "nvidia":     ("NVIDIA_API_KEY",     "meta/llama-3.1-70b-instruct",   "https://integrate.api.nvidia.com/v1"),
-    "gemini":     ("GEMINI_API_KEY",     "gemini-2.5-pro",                "__gemini__"),
+    "nvidia":     ("NVIDIA_API_KEY",     "nvidia/nemotron-3.5-lightning-30b-a3b",   "https://integrate.api.nvidia.com/v1"),
+    "kimi":       ("KIMI_API_KEY",       "kimi-k3",                       "https://api.moonshot.ai/v1"),
+    "gemini":     ("GEMINI_API_KEY",     "gemini-3.6-flash",              "__gemini__"),
+    "local_claude":("ANTHROPIC_API_KEY", "auto",                          "http://localhost:20128/v1")
 }
 
 
@@ -18,7 +20,7 @@ PROVIDER_DEFAULTS: dict[str, tuple[str, str, str | None]] = {
 class Config:
     PROJECT_ROOT: Path = Path(__file__).parent.parent
 
-    LLM_PROVIDER: str = "openrouter"
+    LLM_PROVIDER: str = "local_claude"
     LLM_MODEL: str = ""       
     LLM_BASE_URL: Optional[str] = None  
     LLM_API_KEY: Optional[str] = None 
@@ -43,7 +45,7 @@ class Config:
     ERROR_MEMORY_DB_PATH: Path = Path.home() / ".auto_spec" / "error_memory.db"
 
     def __post_init__(self):
-        load_dotenv()
+        load_dotenv(override=True)
 
         self.LLM_PROVIDER = os.getenv("LLM_PROVIDER", self.LLM_PROVIDER).lower()
 
@@ -59,7 +61,8 @@ class Config:
 
         self.LLM_MODEL = os.getenv("LLM_MODEL", default_model)
 
-        self.LLM_BASE_URL = base_url if base_url != "__gemini__" else None
+        # Allow env override for any provider (e.g. self-hosted vLLM)
+        self.LLM_BASE_URL = os.getenv("LLM_BASE_URL", base_url if base_url != "__gemini__" else None)
 
         temp_str = os.getenv("LLM_TEMPERATURE")
         if temp_str:

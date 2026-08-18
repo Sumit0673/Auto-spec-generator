@@ -132,6 +132,9 @@ def _raw_llm_call(self, system_prompt: str, user_prompt: str, temperature: float
             max_tokens=max_tokens,
             temperature=temperature,
         )
+        print("======================================================")
+        print(f"Response: {response.choices[0].message.content}")
+        print("======================================================")
         return (response.choices[0].message.content or "").strip()
 
     except Exception as e:

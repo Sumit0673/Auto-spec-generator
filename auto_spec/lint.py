@@ -1,9 +1,3 @@
-"""Static CVL linter — catches known error classes without calling Certora.
-
-Runs after every LLM generation, before certoraRun. If it fails, the repair
-loop uses lint findings as feedback instead of burning a Certora round trip.
-"""
-
 from __future__ import annotations
 
 import re

@@ -68,12 +68,12 @@ def _clean_cvl_spec(spec_content: str, det_methods_block: str, contract_code: st
     spec_content = _strip_env_from_envfree(spec_content)
 
     # 12. Append missing semicolons on assert/require statements
-    spec_content = re.sub(
-        r'^(\s*(?:assert)\s+.+[^;{}\s])\s*$',
-        r'\1;',
-        spec_content,
-        flags=re.MULTILINE,
-    )
+    # spec_content = re.sub(
+    #     r'^(\s*(?:assert)\s+.+[^;{}\s])\s*$',
+    #     r'\1;',
+    #     spec_content,
+    #     flags=re.MULTILINE,
+    # )
 
     # 13. Canonicalize legacy hook syntax LAST — after step 4 rewrote rule-body
     #     `map[x]` → `map(x)`, restore the bracket KEY form the parser requires:
