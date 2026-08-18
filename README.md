@@ -1,162 +1,225 @@
-# Auto-Spec
+<div align="center">
 
-Auto-Spec is a Python tool for generating Certora CVL specifications from Solidity smart contracts using retrieval-augmented generation (RAG) and LLMs.
+# 🔐 Auto-Spec
 
-## Features
-- Generate CVL specifications from Solidity source
-- Use a local or remote Chroma vector database
-- Retrieve similar verified specs as context for generation
-- Works with NVIDIA and OpenAI-compatible models
+### AI-Powered Formal Verification for Solidity Smart Contracts
 
-## Quick start
+**Generate Certora CVL specifications automatically — from Solidity source code.**
 
-### 1. Install
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![Solidity](https://img.shields.io/badge/Solidity-0.8+-363636?style=for-the-badge&logo=solidity&logoColor=white)](https://soliditylang.org)
+[![Certora](https://img.shields.io/badge/Certora-CVL-FF6B35?style=for-the-badge&logo=ethereum&logoColor=white)](https://www.certora.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](https://opensource.org/licenses/MIT)
+
+</div>
+
+
+## 🏗️ Runtime Pipeline (What Actually Executes)
+
+The live pipeline implements this architecture with practical engineering tradeoffs:
+
+| Stage | Implementation | Key Detail |
+|-------|---------------|------------|
+| **1. Profile & Retrieve** | `SolidityProject` + ChromaDB | Fingerprint contract → query vector DB for top-k similar verified specs |
+| **2. Deterministic Methods Block** | `methods_block.py` | Pure AST parsing → no LLM. Getters marked `envfree`, no Solidity keywords in CVL |
+| **3. Parallel Rule Drafting** | `generator.py:_parallel_generate` | One LLM call per `external`/`public` function + one cross-cutting call |
+| **4. Merge & Dedupe** | `_merge_specs` | Merges fragments by rule/invariant name; preserves ghost/hook declarations |
+| **5. Auto-Repair (17 checks)** | `lint.py` + `_clean_cvl_spec` | Regex fixes (parens, `address(0)`→`0x0`, mapping syntax) + LLM semantic repair |
+| **6. Certora Validation** | `certoraParse` + `certoraRun` | Loop until compiles; error memory prevents repeat failures; exit codes reflect status |
+
+---
+
+## 🎯 The Problem
+
+Writing formal verification specs for smart contracts is **painfully slow and error-prone**.
+
+A single Certora CVL `.spec` file can take a security engineer **hours to days** of careful manual work — reading the contract, understanding the business logic, mapping function signatures, and writing mathematically precise rules. One wrong variable name or missed function, and the verifier rejects it.
+
+> **What if an AI agent could do this in seconds?**
+
+---
+
+## 💡 The Solution
+
+**Auto-Spec** is a multi-stage AI pipeline that reads your Solidity contract and produces a **compilable Certora CVL specification** — complete with method blocks, invariants, and per-function rules.
+
+It doesn't just "ask ChatGPT to write a spec." It combines:
+
+- 🔍 **RAG** — retrieves similar verified specs from a vector database as reference
+- 🧠 **LLM** — drafts rules informed by real, proven verification patterns
+- 🔧 **Deterministic repair** — a 17-check static linter + auto-fix loop catches what the LLM misses
+- ✅ **Validation** — the output compiles against Certora, with automatic retry on failure
+
+---
+
+## 🏗️ Architecture
+
+```
+Solidity Contract ──►┌─────────────────┐
+                     │  1. Profile &    │
+                     │  Retrieve (RAG) │  ← Vector DB of verified specs
+                     └────────┬────────┘
+                              │
+                     ┌────────▼────────┐
+                     │  2. Deterministic│
+                     │  Methods Block  │  ← No LLM — pure parsing
+                     └────────┬────────┘
+                              │
+                     ┌────────▼────────┐
+                     │  3. Parallel     │
+                     │  Rule Drafting  │  ← One LLM call per function
+                     └────────┬────────┘
+                              │
+                     ┌────────▼────────┐
+                     │  4. CVL Linter  │  ← 17 static checks
+                     │  + Auto-Repair  │  ← Deterministic fixes + LLM repair
+                     └────────┬────────┘
+                              │
+                     ┌────────▼────────┐
+                     │  5. Certora     │
+                     │  Validation     │  ← Compilable .spec or retry
+                     └────────┬────────┘
+                              │
+                     ┌────────▼────────┐
+                     │  Output: .spec  │  ← Ready to verify ✓
+                     └─────────────────┘
+```
+
+---
+
+## ✨ Key Features
+
+| Feature | What it does |
+|---|---|
+| 📄 **Smart Method Blocks** | Parsed from Solidity AST — not hallucinated.|
+| 🔎 **RAG-Powered Context** | Retrieves top-k similar verified specs to ground the LLM in proven patterns. |
+| ⚡ **Parallel Drafting** | One LLM call per external/public function — fast and isolated. |
+| 🛠️ **CVL Linter** | Catches keyword leaks, missing getters, invalid requires, env errors, and more. |
+| 🔄 **Auto-Repair Loop** | Deterministic regex fixes + LLM-powered semantic repair with stuck-loop detection. |
+| 🧠 **Error Memory** | SQLite-backed pattern store — learns from past failures per contract hash. |
+| 🔀 **Multi-Provider** | Works with OpenRouter, NVIDIA, OpenAI-compatible APIs — swap with one env var. |
+| ✅ **Validation-First** | Output is validated against Certora by default. No silent passes on failure. |
+
+---
+
+## 🚀 Quick Start
+
 ```bash
-cd auto-spec
+# 1. Install
+git clone https://github.com/Sumit0673/Auto-Spec.git
+cd Auto-Spec
 pip install -e .
+
+# 2. Configure
+export CHROMA_DB_PATH=./erc20_pairs_final/chroma_db
+export OPENROUTER_API_KEY=your-key-here
+
+# 3. Generate a spec
+auto-spec generate contracts/MyToken.sol \
+  --query "ERC20 transfer and allowance rules" \
+  -o output/MyToken.spec
+
+# 4. Validate (optional — runs by default)
+auto-spec generate contracts/MyToken.sol \
+  --query "ERC20 rules" -o output/MyToken.spec --check
 ```
 
-### 2. Set up the vector database
-Use the local database shipped with this repo:
+---
+
+
+## 🧪 Running Tests
+
 ```bash
-export CHROMA_DB_PATH=/home/sumit-gupta/Auto-Spec/erc20_pairs_final/chroma_db
+pytest tests/ -v
 ```
 
-Or use a remote release URL:
+**75 tests passing** — covering generation, linting, error memory, repair logic, and exit codes.
+
+---
+
+## 🗺️ Roadmap
+
+- [ ] **Multi-contract support** — handle imports and cross-contract verification
+- [ ] **Broader dataset** — expand beyond ERC20 to lending, AMMs, bridges, and governance
+- [ ] **Web UI** — upload a contract, get a spec in your browser
+- [ ] **Quality scoring** — automated metrics for spec completeness and Certora pass rate
+- [ ] **Community spec DB** — crowdsourced verified specs for popular protocols
+
+---
+
+## 🔮 Future Architecture: The Full Multi-Agent Vision
+
+The current runtime pipeline implements the **first two agents** (Static Analysis + RAG-based Intent) with LLM-assisted synthesis. The full vision expands to four specialized agents:
+
+### **Agent 1: Code Parser (Static Analysis / AST)**
+> *LLMs can't count tokens or track variables across nested call graphs reliably.*
+
+- Runs `solc` / `solidity-parser` on the target contract
+- Produces a **deterministic Abstract Syntax Tree**
+- Outputs: state variables with visibility, complete function call graph, all `revert`/`require`/`assert` conditions
+- **Why it matters:** Eliminates LLM hallucinations on variable names, function signatures, and visibility boundaries. The `methods {}` block is built from this — zero LLM involvement.
+- **Status:** ✅ **Implemented**
+
+### **Agent 2: Intent Extractor (Contextual RAG)**
+> *Formal verification needs intent. Code alone doesn't tell you what the contract **should** do.*
+
+- Ingests whitepapers, GitBook docs, design requirements, READMEs
+- Vectorizes and stores in a specialized vector database
+- Semantic search extracts **business rules as high-level properties**:
+  - Economic invariants: *"Users must maintain 150% collateral ratio at all times"*
+  - Access control: *"Admin cannot directly withdraw user deposits"*
+- **Why it matters:** These semantic guardrails translate human business logic into mathematical theorems for the next stage.
+- **Status:** ✅ **Implemented** (spec-based RAG)
+
+### **Agent 3: Invariant Miner (Dynamic Testing)**
+> *Some invariants only emerge under execution pressure.*
+
+- Deploys contract to a local EVM (Foundry/Hardhat)
+- Runs property-based fuzzing — thousands of randomized transactions
+- Monitors state before/after every transition to find **emergent mathematical axioms**:
+  - *Constant-product formulas in AMMs*
+  - *Algorithmic fee scaling relationships*
+  - *Invariant balance relationships across swap paths*
+- **Why it matters:** Catches low-level mathematical properties that are nearly impossible to deduce from code reading alone.
+- **Status:** 🔮 **Planned**
+
+### **Agent 4: Synthesizer (Spec Generation)**
+> *The compiler and QA engine.*
+
+- Aggregates all three prior outputs into a structured input matrix:
+  1. **Syntactic Framework** (from Agent 1)
+  2. **Behavioral Intent Rules** (from Agent 2)
+  3. **Discovered Mathematical Axioms** (from Agent 3)
+- Feeds into a code-generation model optimized for formal logic
+- Outputs a **fully compilable CVL `.spec`** with methods blocks, state invariants, and transaction rules
+- **Status:** 🔄 **Partial** (LLM drafting + repair loop)
+
+> **Why this matters:** Each agent solves a subproblem that pure LLM text generation cannot — static analysis eliminates hallucinations, RAG grounds intent in documentation, dynamic mining finds invariants only visible under execution, and the synthesizer compiles it all into verified formal logic.
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Whether it's new linter checks, more dataset pairs, or support for additional contract types — open an issue or PR.
+
 ```bash
-export CHROMA_DB_REMOTE_URL=https://github.com/Sumit0673/Auto-spec-generator/releases/download/v1.0.0/chroma_db_v1.0.0.tar.gz
+# Development setup
+pip install -e ".[dev]"
+pytest tests/ -v
 ```
 
-### 3. Add your API key
-```bash
-export NVIDIA_API_KEY=your-key-here
-```
+---
 
-### 4. Generate a spec
-```bash
-/home/sumit-gupta/Auto-Spec/.venv/bin/auto-spec generate /home/sumit-gupta/Auto-Spec/erc20_pairs_final/mock_token.sol --query "ERC20 transfer and allowance rules" -o /tmp/mock_token.spec
-```
+## 📜 License
 
-## Repository layout
-- auto-spec/: Python package and CLI
-- erc20_pairs_final/: dataset, specs, and vector database assets
+MIT License — see [LICENSE](LICENSE) for details.
 
+---
 
-**Architectural Roadmap**
---------------------------------------------------------------
+<div align="center">
 
-This document outlines the end-to-end technical architecture for an automated, multi-agent AI system designed to generate Certora Verification Language (CVL) .spec files from Solidity smart contracts. By combining static analysis, contextual retrieval-augmented generation (RAG), and dynamic invariant mining, the system bypasses the typical limitations of standalone LLMs to produce production-grade formal verification blueprints.
+**Built with ❤️ to make formal verification accessible to every Solidity developer.**
 
-**Step 1: The Code Parsing Agent (Static Analysis / AST)**
-----------------------------------------------------------
+*If this project saves you time, consider giving it a ⭐ — it helps others find it.*
 
-**Context**
------------
-
-LLMs inherently struggle with precise token counting, variable tracking, and mapping deeply nested execution trees across large codebases. This agent mitigates those shortcomings by replacing raw text inference with hard-coded syntactic validation.
-
-**How It Works**
-----------------
-
-The agent executes a hard-coded parser framework (such as solc or solidity-parser) directly against the target smart contract. This parser processes the raw Solidity codebase and translates it into a deterministic Abstract Syntax Tree (AST).
-
-**Agent's Output**
-------------------
-
-The agent compiles a clean, strictly structured layout containing:
-
-*   **State Variables:** A definitive list of every state variable along with its associated visibility modifier (public, internal, private).
-    
-*   **Function Dependency Map:** A complete call graph detailing how control flows through the contract (e.g., _Function A_ calls _Function B_, which triggers _Modifier C_).
-    
-*   **Execution Safety Bounds:** Identification of all explicit revert(), require(), and assert() conditions embedded within the codebase.
-    
-
-**Why It's Critical**
----------------------
-
-This structural blueprint serves as the mathematical foundation for the spec file. It maps out the exact boilerplate code required for the CVL .spec file's methods block, completely eliminating the risk of LLM hallucinations regarding variable names, visibility boundaries, or function signatures.
-
-**Step 2: The Intent Agent (Contextual RAG)**
----------------------------------------------
-
-**Context**
------------
-
-Formal verification requires an explicit understanding of system intent; a mathematical model cannot verify correctness if it does not know what the program is _supposed_ to do. If an asset bridge or lending pool contains a structural flaw that allows uncollateralized withdrawals, a standard LLM looking only at the code might mistakenly assume that behavior is intentional.
-
-**How It Works**
-----------------
-
-Prior to examining any executable code, this agent ingests the project's natural language documentation. It processes files such as whitepapers, GitBook documentation, official design requirements, and repository README files. This unstructured text is partitioned, vectorized, and stored in a specialized vector database.
-
-**Agent's Output**
-------------------
-
-The agent dynamically queries the vector database using semantic search strings to extract core business rules, including:
-
-*   **Economic Parameters:** Assertions like _"Users must maintain a minimum 150% collateral ratio at all times."_
-    
-*   **Access Control Limits:** Assertions like _"The contract administrator is strictly barred from directly withdrawing user-deposited capital."_
-    
-
-**Why It's Critical**
----------------------
-
-This layer extracts human-readable documentation strings and refines them into high-level semantic properties. These security properties provide the guardrails necessary for subsequent agents to translate human business logic into strict mathematical theorems.
-
-**Step 3: The Testing Agent (Dynamic Invariant Mining)**
---------------------------------------------------------
-
-**Context**
------------
-
-Relying entirely on text analysis limits an AI's ability to discover emergent system behaviors. To understand deep mathematical invariants, the architecture requires an observation layer that evaluates how the smart contract operates under pressure.
-
-**How It Works**
-----------------
-
-The agent deploys the Solidity smart contract into an isolated, local EVM simulation environment (such as Foundry or Hardhat). It then executes automated property-based fuzz testing, firing thousands of randomized transactions at the contract's exposed interfaces.
-
-**Agent's Output**
-------------------
-
-The agent continuously monitors the contract's state variables before and after every state transition to uncover truths that remain constant across all execution paths. It outputs discovered invariants, such as:
-
-*   **Constant Relationships:** _"Across all execution branches and swap paths, the product of tokenABalance \* tokenBBalance either increases or remains exactly equal."_
-    
-
-**Why It's Critical**
----------------------
-
-Dynamic mining catches complex, low-level mathematical axioms (such as automated market maker constant-product formulas or algorithmic fee scaling) that are remarkably difficult for a traditional language model to deduce through code reading alone.
-
-**Step 4: The Synthesizer Agent (Generating the .spec)**
---------------------------------------------------------
-
-**Context**
------------
-
-The final layer of the architecture serves as the compiler and quality assurance engine, converting the multi-modal agent insights into a single, cohesive formal verification document.
-
-**How It Works**
-----------------
-
-A master synthesis agent aggregates the definitive telemetry collected by the three previous structural layers. It feeds these contextual tokens into a highly tailored code-generation model optimized for formal logic systems.
-
-**Synthesis Input Matrix**
---------------------------
-
-The Synthesizer processes three explicit inputs:
-
-1.  **The Syntactic Framework:** The exact variable and method schema generated by the Static Analysis agent.
-    
-2.  **The Behavioral Intent Rules:** The natural-language semantic restrictions discovered by the Contextual RAG agent.
-    
-3.  **The Discovered Mathematical Axioms:** The runtime data properties established by the Dynamic Invariant Mining agent.
-    
-
-**Final Output**
-----------------
-
-The agent reconciles these inputs to author and output a fully formed, compilable .spec file written natively in **Certora Verification Language (CVL)**, complete with fully structured methods blocks, state invariants, and explicit transaction rules.
+</div>
