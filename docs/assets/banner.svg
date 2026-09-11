@@ -1,0 +1,53 @@
+<svg width="900" height="240" viewBox="0 0 900 240" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Auto-Spec: generate and verify CVL specs for Solidity">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="900" y2="240" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0B1020"/>
+      <stop offset="1" stop-color="#131A33"/>
+    </linearGradient>
+    <linearGradient id="shieldGrad" x1="70" y1="60" x2="180" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6366F1"/>
+      <stop offset="0.55" stop-color="#8B5CF6"/>
+      <stop offset="1" stop-color="#22D3EE"/>
+    </linearGradient>
+    <linearGradient id="word" x1="250" y1="90" x2="820" y2="150" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#C7D2FE"/>
+      <stop offset="0.5" stop-color="#A78BFA"/>
+      <stop offset="1" stop-color="#67E8F9"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="10" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="900" height="240" rx="24" fill="url(#bg)"/>
+
+  <!-- decorative pipeline dots (5 stages) -->
+  <g opacity="0.35">
+    <circle cx="620" cy="60" r="4" fill="#67E8F9"/>
+    <circle cx="660" cy="60" r="4" fill="#A78BFA"/>
+    <circle cx="700" cy="60" r="4" fill="#67E8F9"/>
+    <circle cx="740" cy="60" r="4" fill="#A78BFA"/>
+    <circle cx="780" cy="60" r="4" fill="#67E8F9"/>
+    <line x1="624" y1="60" x2="776" y2="60" stroke="#3B4570" stroke-width="2"/>
+  </g>
+
+  <!-- Logo mark -->
+  <g transform="translate(60,40)">
+    <path d="M75 6 L128 28 V70 C128 104 105 129 75 140 C45 129 22 104 22 70 V28 Z"
+          fill="url(#shieldGrad)" filter="url(#glow)"/>
+    <g opacity="0.85" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round">
+      <line x1="49" y1="46" x2="90" y2="46" opacity="0.5"/>
+      <line x1="49" y1="59" x2="101" y2="59" opacity="0.35"/>
+    </g>
+    <path d="M51 82 L69 101 L103 62" fill="none" stroke="#FFFFFF" stroke-width="11"
+          stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M104 18 l3 8 8 3 -8 3 -3 8 -3 -8 -8 -3 8 -3 z" fill="#FDE047"/>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="250" y="130" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+        font-size="72" font-weight="800" fill="url(#word)" letter-spacing="-1">Auto-Spec</text>
+  <text x="252" y="172" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+        font-size="23" font-weight="500" fill="#8B93B7">Generate &amp; verify CVL specs for Solidity contracts</text>
+</svg>

@@ -1,0 +1,36 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Auto-Spec logo">
+  <defs>
+    <linearGradient id="shieldGrad" x1="40" y1="20" x2="160" y2="185" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6366F1"/>
+      <stop offset="0.55" stop-color="#8B5CF6"/>
+      <stop offset="1" stop-color="#22D3EE"/>
+    </linearGradient>
+    <linearGradient id="checkGrad" x1="70" y1="80" x2="140" y2="140" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#E0F2FE"/>
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#6366F1" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Verification shield -->
+  <path d="M100 16 L168 44 V96 C168 140 138 172 100 186 C62 172 32 140 32 96 V44 Z"
+        fill="url(#shieldGrad)" filter="url(#soft)"/>
+
+  <!-- Inner contract "code" lines representing the generated spec -->
+  <g opacity="0.9" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round">
+    <line x1="66" y1="62" x2="118" y2="62" opacity="0.55"/>
+    <line x1="66" y1="78" x2="134" y2="78" opacity="0.40"/>
+  </g>
+
+  <!-- Verified checkmark: the "proven" core of the project -->
+  <path d="M70 108 L92 132 L134 82"
+        fill="none" stroke="url(#checkGrad)" stroke-width="14"
+        stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Automation spark -->
+  <g fill="#FDE047">
+    <path d="M138 40 l4 10 10 4 -10 4 -4 10 -4 -10 -10 -4 10 -4 z"/>
+  </g>
+</svg>
