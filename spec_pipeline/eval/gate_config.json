@@ -1,0 +1,32 @@
+{
+  "effective_pass_rate": {
+    "direction": "at least",
+    "floor": 0.6,
+    "tolerance": 0.0
+  },
+  "ground_truth_coverage": {
+    "direction": "at least",
+    "floor": 0.4,
+    "tolerance": 0.0
+  },
+  "rules_per_gated_function": {
+    "direction": "at most",
+    "floor": 0.5,
+    "tolerance": 0.0
+  },
+  "syntax_validity_rate": {
+    "direction": "at least",
+    "floor": 0.9,
+    "tolerance": 0.0
+  },
+  "vacuity_rate": {
+    "direction": "at most",
+    "floor": 0.2,
+    "tolerance": 0.0
+  },
+  "verdict_rate": {
+    "direction": "at least",
+    "floor": 0.75,
+    "tolerance": 0.0
+  }
+}

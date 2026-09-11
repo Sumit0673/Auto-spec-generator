@@ -1,8 +1,0 @@
-{
-    "importFilesToOrigRelpaths": {},
-    "primary_contract": "SavingsVault",
-    "specfile": "output/SavingsVault_attempt4.spec",
-    "specfileOrigRelpath": "output/SavingsVault_attempt4.spec",
-    "specfilesToImportDecls": {},
-    "type": "spec"
-}

@@ -1,224 +1,175 @@
-<div align="center">
+# spec_pipeline
 
-# 🔐 Auto-Spec
+`spec_pipeline` takes one Solidity file or one Solidity project and produces a
+CVL (Certora Verification Language) specification that has actually been run
+through `certoraRun`, together with an honest report of what the Certora Prover
+concluded. A spec is never presented as verified unless a prover verdict exists
+for every rule it contains. When verification cannot be completed, the run
+terminates with exactly one classified outcome that names the blocking cause.
 
-### AI-Powered Formal Verification for Solidity Smart Contracts
+## The five stages
 
-**Generate Certora CVL specifications automatically — from Solidity source code.**
+The pipeline is a five-stage sequence orchestrated by `spec_pipeline/pipeline.py`.
+Each stage writes a typed artifact (`<base>_stageN.json`) that later stages read.
 
-[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![Solidity](https://img.shields.io/badge/Solidity-0.8+-363636?style=for-the-badge&logo=solidity&logoColor=white)](https://soliditylang.org)
-[![Certora](https://img.shields.io/badge/Certora-CVL-FF6B35?style=for-the-badge&logo=ethereum&logoColor=white)](https://www.certora.com)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](https://opensource.org/licenses/MIT)
+1. **Stage 1 — Extractor.** Runs slither to produce the first-party contract
+   table: contracts, state variables, function gates, and caller edges.
+2. **Stage 2 — Invariant Miner.** Classifies each state variable into one
+   invariant category (LLM-driven).
+3. **Stage 3 — Rule Writer.** Produces CVL rules, invariants, hooks, and ghost
+   declarations. Emits the deterministic `methods` block from the Stage 1 table
+   and extracts CVL non-destructively. An iterative variant (Repair Loop)
+   re-prompts using prover diagnostics.
+4. **Stage 4 — Critic.** Produces adversarial sibling-function findings and
+   folds them into the spec.
+5. **Stage 5 — Verifier.** Invokes `certoraRun` with the remappings and solc
+   the project needs, and produces the Verification Report with a single
+   Verification Status.
 
-</div>
+The user-facing deliverable (the Spec Bundle) is the final `.spec` file, the
+Verification Report, and the Run Manifest.
 
+## Install and setup
 
-## 🏗️ Runtime Pipeline (What Actually Executes)
+Supported Python: **>=3.10, <3.15** (declared in `pyproject.toml`).
 
-The live pipeline implements this architecture with practical engineering tradeoffs:
-
-| Stage | Implementation | Key Detail |
-|-------|---------------|------------|
-| **1. Profile & Retrieve** | `SolidityProject` + ChromaDB | Fingerprint contract → query vector DB for top-k similar verified specs |
-| **2. Deterministic Methods Block** | `methods_block.py` | Pure AST parsing → no LLM.|
-| **3. Parallel Rule Drafting** | `generator.py:_parallel_generate` | One LLM call per `external`/`public` function + one cross-cutting call |
-| **4. Merge & Dedupe** | `_merge_specs` | Merges fragments by rule/invariant name; preserves ghost/hook declarations |
-| **5. Auto-Repair** | `lint.py` + `_clean_cvl_spec` | Regex fixes + LLM semantic repair |
-| **6. Certora Validation** | `certoraRun` | Loop if fails certora validation; error memory prevents repeat failures; exit codes reflect status |
-
----
-
-## 🎯 The Problem
-
-Writing formal verification specs for smart contracts is **painfully slow and error-prone**.
-
-A single Certora CVL `.spec` file can take a security engineer **hours to days** of careful manual work — reading the contract, understanding the business logic, mapping function signatures, and writing mathematically precise rules. One wrong variable name or missed function, and the verifier rejects it.
-
-> **What if an AI agent could do this in seconds?**
-
----
-
-## 💡 The Solution
-
-**Auto-Spec** is a multi-stage AI pipeline that reads your Solidity contract and produces a **compilable Certora CVL specification** — complete with method blocks, invariants, and per-function rules.
-
-It doesn't just "ask ChatGPT to write a spec." It combines:
-
-- 🔍 **RAG** — retrieves similar verified specs from a vector database as reference
-- 🧠 **LLM** — drafts rules informed by real, proven verification patterns
-- 🔧 **Deterministic repair** — a linter + auto-fix loop catches what the LLM misses
-- ✅ **Validation** — the output compiles against Certora, with automatic retry on failure
-
----
-
-## 🏗️ Architecture
-
-```
-                     ┌─────────────────┐
-Solidity Contract ──►│  1. Profile &   │
-                     │  Retrieve (RAG) │  
-                     └────────┬────────┘
-                              │
-                     ┌────────▼────────┐
-                     │ 2. Deterministic│
-                     │  Methods Block  │  ← No LLM — pure parsing
-                     └────────┬────────┘
-                              │
-                     ┌────────▼────────┐
-                     │  3. Parallel    │
-                     │  Rule Drafting  │  ← One LLM call per function
-                     └────────┬────────┘
-                              │
-                     ┌────────▼────────┐
-                     │  4. CVL Linter  │
-                     │  + Auto-Repair  │  ← Deterministic fixes + LLM repair
-                     └────────┬────────┘
-                              │
-                     ┌────────▼────────┐
-                     │  5. Certora     │
-                     │  Validation     │  ← Compilable .spec or retry
-                     └────────┬────────┘
-                              │
-                     ┌────────▼────────┐
-                     │  Output: .spec  │  ← Ready to verify ✓
-                     └─────────────────┘
-```
-
----
-
-## ✨ Key Features
-
-| Feature | What it does |
-|---|---|
-| 📄 **Smart Method Blocks** | Parsed from Solidity AST — not hallucinated.|
-| 🔎 **RAG-Powered Context** | Retrieves top-k similar verified specs to ground the LLM in proven patterns. |
-| ⚡ **Parallel Drafting** | One LLM call per external/public function — fast and isolated. |
-| 🛠️ **CVL Linter** | Catches keyword leaks, missing getters, invalid requires, env errors, and more. |
-| 🔄 **Auto-Repair Loop** | Deterministic regex fixes + LLM-powered semantic repair with stuck-loop detection. |
-| 🧠 **Error Memory** | SQLite-backed pattern store — learns from past failures per contract hash. |
-| 🔀 **Multi-Provider** | Works with OpenRouter, NVIDIA, OpenAI-compatible APIs — swap with one env var. |
-| ✅ **Validation-First** | Output is validated against Certora by default. No silent passes on failure. |
-
----
-
-## 🚀 Quick Start
+Run the bootstrap script from a clean virtual environment of a supported Python
+version with network access. It installs every pinned Python dependency and
+prints the resolved version of each external tool.
 
 ```bash
-# 1. Install
-git clone https://github.com/Sumit0673/Auto-Spec.git
-cd Auto-Spec
-pip install -e .
-
-# 2. Configure
-export CHROMA_DB_PATH=./erc20_pairs_final/chroma_db
-export OPENROUTER_API_KEY=your-key-here
-
-# 3. Generate a spec
-auto-spec generate contracts/MyToken.sol \
-  --query "ERC20 transfer and allowance rules" \
-  -o output/MyToken.spec
-
-# 4. Validate (optional — runs by default)
-auto-spec generate contracts/MyToken.sol \
-  --query "ERC20 rules" -o output/MyToken.spec --check
+python -m venv .venv
+source .venv/bin/activate
+scripts/bootstrap.sh
 ```
 
----
+Dependencies (name and exact pins) are declared in `pyproject.toml`:
 
+- Runtime: `slither-analyzer`, `networkx`, `openai`, `pdfplumber`
+- Test: `pytest`, `pytest-cov`, `hypothesis`
 
-## 🧪 Running Tests
+To install directly with pip instead of the bootstrap script:
 
 ```bash
-pytest tests/ -v
+pip install -e .          # runtime dependencies
+pip install -e '.[test]'  # runtime + test dependencies
 ```
 
-**75 tests passing** — covering generation, linting, error memory, repair logic, and exit codes.
+## Commands
 
----
-
-## 🗺️ Roadmap
-
-- [ ] **Multi-contract support** — handle imports and cross-contract verification
-- [ ] **Broader dataset** — expand beyond ERC20 to lending, AMMs, bridges, and governance
-- [ ] **Web UI** — upload a contract, get a spec in your browser
-- [ ] **Quality scoring** — automated metrics for spec completeness and Certora pass rate
-- [ ] **Community spec DB** — crowdsourced verified specs for popular protocols
-
----
-
-## 🔮 Future Architecture: The Full Multi-Agent Vision
-
-The current runtime pipeline implements the **first two agents** (Static Analysis + RAG-based Intent) with LLM-assisted synthesis. The full vision expands to four specialized agents:
-
-### **Agent 1: Code Parser (Static Analysis / AST)**
-> *LLMs can't count tokens or track variables across nested call graphs reliably.*
-
-- Runs `solc` / `solidity-parser` on the target contract
-- Produces a **deterministic Abstract Syntax Tree**
-- Outputs: state variables with visibility, complete function call graph, all `revert`/`require`/`assert` conditions
-- **Why it matters:** Eliminates LLM hallucinations on variable names, function signatures, and visibility boundaries. The `methods {}` block is built from this — zero LLM involvement.
-- **Status:** 🔮 **Planned**
-
-### **Agent 2: Intent Extractor (Contextual RAG)**
-> *Formal verification needs intent. Code alone doesn't tell you what the contract **should** do.*
-
-- Ingests whitepapers, GitBook docs, design requirements, READMEs
-- Vectorizes and stores in a specialized vector database
-- Semantic search extracts **business rules as high-level properties**:
-  - Economic invariants: *"Users must maintain 150% collateral ratio at all times"*
-  - Access control: *"Admin cannot directly withdraw user deposits"*
-- **Why it matters:** These semantic guardrails translate human business logic into mathematical theorems for the next stage.
-- **Status:** 🔮 **Planned**
-
-### **Agent 3: Invariant Miner (Dynamic Testing)**
-> *Some invariants only emerge under execution pressure.*
-
-- Deploys contract to a local EVM (Foundry/Hardhat)
-- Runs property-based fuzzing — thousands of randomized transactions
-- Monitors state before/after every transition to find **emergent mathematical axioms**:
-  - *Constant-product formulas in AMMs*
-  - *Algorithmic fee scaling relationships*
-  - *Invariant balance relationships across swap paths*
-- **Why it matters:** Catches low-level mathematical properties that are nearly impossible to deduce from code reading alone.
-- **Status:** 🔮 **Planned**
-
-### **Agent 4: Synthesizer (Spec Generation)**
-> *The compiler and QA engine.*
-
-- Aggregates all three prior outputs into a structured input matrix:
-  1. **Syntactic Framework** (from Agent 1)
-  2. **Behavioral Intent Rules** (from Agent 2)
-  3. **Discovered Mathematical Axioms** (from Agent 3)
-- Feeds into a code-generation model optimized for formal logic
-- Outputs a **fully compilable CVL `.spec`** with methods blocks, state invariants, and transaction rules
-
-> **Why this matters:** Each agent solves a subproblem that pure LLM text generation cannot — static analysis eliminates hallucinations, RAG grounds intent in documentation, dynamic mining finds invariants only visible under execution, and the synthesizer compiles it all into verified formal logic.
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Whether it's new linter checks, more dataset pairs, or support for additional contract types — open an issue or PR.
+Core pipeline entry point:
 
 ```bash
-# Development setup
-pip install -e ".[dev]"
-pytest tests/ -v
+python -m spec_pipeline <path> \
+  [--stages 1 2 3 4 5] \
+  [--stage N] \
+  [--output-dir DIR] \
+  [--certora-args "..."] \
+  [--iterative-stage3] \
+  [--max-iterations N]
 ```
 
----
+- `<path>` — a Solidity file or a project directory to analyze.
+- `--stages` — the set of stages to run (default: all five).
+- `--stage N` — run a single stage.
+- `--output-dir DIR` — where artifacts and the Spec Bundle are written.
+- `--certora-args "..."` — extra arguments passed through to `certoraRun`.
+- `--iterative-stage3` — use the Repair Loop variant of Stage 3.
+- `--max-iterations N` — Repair Loop iteration cap (default 3, range 1-10).
 
-## 📜 License
+Newer flags (existing or planned) that add capability while preserving prior
+default behavior:
 
-MIT License — see [LICENSE](LICENSE) for details.
+- `--no-cache` — run every requested stage from its inputs; do not read
+  artifacts already on disk.
+- `--require-cache` — exit with code 3 and name the missing or stale artifact
+  when a requested stage's prerequisite is absent or stale.
+- `--allow-missing-tools` — run the stages whose tools resolved and record the
+  outcome `skipped_missing_tool` for each remaining stage.
+- `--deps-root PATH` — additional shared Solidity dependency root(s) to search
+  (repeatable), in addition to `SOLIDITY_DEPS_ROOT` and discovered
+  `node_modules`/`lib`.
+- `--verify-contract NAME` — when the Stage 1 table declares more than one
+  first-party contract, verify the named contract(s).
+- `--autofix-cvl` — apply only the semantics-preserving rewrites in the CVL
+  autofix allowlist and record each applied rewrite.
 
----
+### Evaluation harness
 
-<div align="center">
+Scores the pipeline against the human-written pairs in `Paired_Dataset` and
+records a baseline used by the quality gate.
 
-**Built with ❤️ to make formal verification accessible to every Solidity developer.**
+```bash
+python -m spec_pipeline.evaluation [--jobs N] [--resume] [--update-baseline]
+```
 
-*If this project saves you time, consider giving it a ⭐ — it helps others find it.*
+- `--jobs N` — run up to N pipeline invocations concurrently (default 1).
+- `--resume` — skip pairs that already have a complete record for the current
+  source fingerprint.
+- `--update-baseline` — overwrite the evaluation baseline only when every floor
+  and tolerance check passes.
 
-</div>
+### Hygiene check
+
+Reports version-control hygiene violations (tracked paths that match ignore
+rules, tracked compiled Python artifacts). Exits 0 when clean, 1 otherwise.
+
+```bash
+python -m spec_pipeline.hygiene_check
+```
+
+## External tools
+
+The pipeline invokes these external tools. Each is required only by the stages
+listed. Minimum versions are the lowest known-good versions for this pipeline;
+`scripts/bootstrap.sh` prints the versions actually resolved on your machine.
+
+| Tool | Required by | Minimum version | Install command |
+|---|---|---|---|
+| `solc` (via slither) | Stage 1 (Extractor), Stage 5 (Verifier) | 0.5.0 | `pip install solc-select` then `solc-select install <ver> && solc-select use <ver>` |
+| `certoraRun` | Stage 5 (Verifier) | 7.0.0 | `pip install certora-cli` |
+| `node` + `npm` | Stage 5 for Hardhat/npm import resolution | node 18, npm 9 | `nvm install 18` (or install from nodejs.org) |
+| GitHub CLI (`gh`) | Dataset scraping / repository tooling (off the run path) | 2.0.0 | `brew install gh` / `sudo apt install gh` |
+
+slither itself is installed as the pinned `slither-analyzer` Python dependency
+by `scripts/bootstrap.sh`.
+
+## Environment variables
+
+| Variable | Default | Effect |
+|---|---|---|
+| `LLM_BASE_URL` | provider default (no explicit default) | Base URL of the LLM endpoint used by stages 2-4. |
+| `LLM_MODEL` | no default | Model name requested from the LLM provider; recorded in the Run Manifest. |
+| `LLM_API_KEY` | no default | API key for the LLM provider. Its value is redacted (written as `REDACTED`) in every artifact and log. |
+| `LLM_MAX_TOKENS` | provider default (no explicit default) | Maximum completion tokens requested per LLM call. |
+| `LLM_CACHE_DIR` | unset (caching disabled) | Directory for the LLM record/replay cache. When set, responses are keyed on the SHA-256 of the system prompt, user prompt, model, and temperature, enabling byte-identical replays. |
+| `SOLIDITY_DEPS_ROOT` | unset | Additional shared Solidity dependency root(s) searched by the Dependency Resolver, alongside `--deps-root` and discovered `node_modules`/`lib`. |
+| `CERTORA_DATASET_ROOT` | repository root inferred from module location | Base directory the audit-report scraper and evaluation harness treat as the `Paired_Dataset` root. |
+
+Any environment variable whose name ends with `_API_KEY`, `_TOKEN`, or
+`_SECRET` has its value redacted in all artifacts and logs.
+
+## Outcomes and exit codes
+
+Every run terminates with exactly one member of the Outcome Set. The CLI exits
+with code 0 only when the status is `verified` or `verified_with_warnings`, and
+with a distinct documented nonzero code for every other outcome. The table
+below is the single source of truth (kept consistent with the design's Data
+Models section), with one operator action per outcome.
+
+| Outcome | Exit | Meaning | Operator action to resolve |
+|---|---|---|---|
+| `verified` | 0 | every rule passing, non-vacuous, no warnings | None. The spec is verified; ship the Spec Bundle. |
+| `verified_with_warnings` | 0 | all passing, no vacuity, ≥1 prover warning | Review the prover warnings in the Verification Report; address them if they affect intent. |
+| `violated` | 1 | ≥1 rule failing | Inspect the failing rule's counterexample in the Verification Report; fix the contract or correct the rule. |
+| `vacuous` | 2 | all passing but ≥1 vacuous rule | Strengthen the preconditions of each named vacuous rule so its premises are reachable. |
+| `no_first_party_contracts` | 4 | zero first-party contracts to analyze | Point `<path>` at the project's own sources; check the dependency roots did not filter out your contracts. |
+| `tool_unavailable` | 5 | a required tool is absent (no `--allow-missing-tools`) | Install the named tool (see External tools), or rerun with `--allow-missing-tools` to skip the blocked stages. |
+| `typecheck_failed` | 6 | CVL typechecker rejected the spec | Read the recorded typechecker diagnostics; rerun with `--iterative-stage3` (and optionally `--autofix-cvl`) to repair the CVL. |
+| `compile_failed` | 7 | slither/solc could not compile sources | Read the compiler diagnostics; supply the correct `--deps-root`/remappings and an installed solc that matches the pragmas. |
+| `no_compatible_solc` | 8 | no installed solc satisfies pragmas | Install a solc version satisfying the reported constraints, e.g. `solc-select install <ver>`. |
+| `unsupported_pragma_set` | 9 | first-party files declare disjoint pragmas | Reconcile the conflicting pragma constraints in the named files, or analyze them separately. |
+| `llm_unavailable` | 10 | LLM endpoint rejected the probe | Verify `LLM_BASE_URL`, `LLM_MODEL`, and `LLM_API_KEY`; confirm network access and provider availability. |
+| `skipped_missing_tool` | 0 | stage skipped under `--allow-missing-tools` | Install the named tool and rerun without `--allow-missing-tools` to execute the skipped stage. |
+| `timeout` | 11 | prover/run budget elapsed | Narrow the scope (`--verify-contract`), simplify rules, or raise the budget via `--certora-args`. |
+| `error` | 12 | unhandled/other | Read the captured traceback recorded for the run and file the failure; rerun after addressing the cause. |

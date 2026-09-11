@@ -1,0 +1,5 @@
+#!/bin/sh
+# Recorded-tool shim for `slither` (Requirements 10.4, 10.8).
+# See `solc` in this directory for the mechanism; the shared `_shim.py` engine
+# replays the recording keyed by (tool, argv) or fails naming the invocation.
+exec "${TOOL_SHIM_PYTHON:-python3}" "$(dirname "$0")/_shim.py" slither "$@"

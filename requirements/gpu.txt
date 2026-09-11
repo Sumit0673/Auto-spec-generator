@@ -1,4 +1,0 @@
-# GPU accelerated dependencies
--r base.txt
-
-torch>=2.0.0

@@ -1,0 +1,13 @@
+#!/bin/sh
+# Recorded-tool shim for `solc` (Requirements 10.4, 10.8).
+#
+# When this directory is prepended to PATH by the `recorded_tools` fixture, an
+# invocation of `solc` reaches this wrapper, which hands the tool name plus the
+# tool's argv to the shared replay engine in `_shim.py`. The engine replays the
+# recorded stdout/stderr/exit keyed by (tool, argv) from the recordings file
+# named by TOOL_SHIM_RECORDINGS, or fails naming the invocation on a miss.
+#
+# The interpreter comes from TOOL_SHIM_PYTHON (the fixture sets it to the test
+# interpreter) so the shim never depends on a `python` being on the sanitized
+# test PATH.
+exec "${TOOL_SHIM_PYTHON:-python3}" "$(dirname "$0")/_shim.py" solc "$@"

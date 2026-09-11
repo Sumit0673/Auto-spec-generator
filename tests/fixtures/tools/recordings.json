@@ -1,0 +1,26 @@
+{
+  "description": "Seed recordings replayed by the tool shims (_shim.py) when the recorded_tools fixture prepends this directory to PATH (Requirements 10.4, 10.8). Each record is keyed by (tool, argv); an argv of \"*\" matches any argv for that tool. Add a record here to make a new invocation replayable; an unrecorded invocation fails naming the tool and argv.",
+  "records": [
+    {
+      "tool": "solc",
+      "argv": ["--version"],
+      "stdout": "solc, the solidity compiler commandline interface\nVersion: 0.8.19+commit.7dd6d404.Linux.g++\n",
+      "stderr": "",
+      "exit": 0
+    },
+    {
+      "tool": "slither",
+      "argv": ["--version"],
+      "stdout": "0.10.0\n",
+      "stderr": "",
+      "exit": 0
+    },
+    {
+      "tool": "certoraRun",
+      "argv": ["--version"],
+      "stdout": "certora-cli 7.0.0\n",
+      "stderr": "",
+      "exit": 0
+    }
+  ]
+}

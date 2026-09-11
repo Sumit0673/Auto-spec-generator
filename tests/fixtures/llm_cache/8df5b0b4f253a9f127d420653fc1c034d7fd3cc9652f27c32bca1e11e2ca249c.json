@@ -1,0 +1,8 @@
+{
+  "key": "8df5b0b4f253a9f127d420653fc1c034d7fd3cc9652f27c32bca1e11e2ca249c",
+  "model": "gpt-4o-mini",
+  "response": "```cvl\nrule increment_increases_count(env e) {\n    uint256 before = count();\n    increment(e);\n    uint256 after = count();\n    assert after == before + 1;\n}\n```",
+  "system_prompt": "You are a Certora CVL spec generator.",
+  "temperature": "0.200000",
+  "user_prompt": "Generate a CVL rule for the Counter contract increment function."
+}

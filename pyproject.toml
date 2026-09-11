@@ -1,72 +1,82 @@
 [build-system]
-requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "auto-spec"
-version = "1.0.0"
-description = "Automated CVL Specification Generation for Smart Contracts using RAG and LLM"
+name = "spec_pipeline"
+version = "0.1.0"
+description = "Five-stage pipeline that generates and verifies CVL specifications for Solidity contracts."
 readme = "README.md"
-requires-python = ">=3.9"
-license = {text = "MIT"}
-authors = [
-    {name = "Auto-Spec Contributors"}
-]
-keywords = ["certora", "cvl", "formal-verification", "smart-contracts", "rag", "llm"]
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Topic :: Software Development :: Libraries :: Python Modules",
-]
+requires-python = ">=3.10,<3.15"
 
+# Runtime dependencies. Every third-party module imported by the spec_pipeline
+# and solidity_graph packages is declared here, pinned to one exact version.
+#   slither  -> slither-analyzer   (solidity_graph.analyzer, spec_pipeline stage 1)
+#   networkx -> networkx           (solidity_graph.analyzer, imported as nx)
+#   openai   -> openai             (spec_pipeline.llm_client)
+#   pdfplumber -> pdfplumber       (scraper.py audit-report extraction)
+# The optional `auto_spec` import in llm_client is guarded by try/except and is
+# not a third-party PyPI dependency, so it is intentionally not declared here.
 dependencies = [
-    "openai>=1.0.0",
-    "chromadb>=0.4.0",
-    "sentence-transformers>=2.2.0",
-    "python-dotenv>=0.20.0",
+    "slither-analyzer==0.11.3",
+    "networkx==3.4.2",
+    "openai==1.99.1",
+    "pdfplumber==0.11.7",
 ]
 
 [project.optional-dependencies]
-dev = [
-    "pytest>=7.0",
-    "pytest-cov>=4.0",
-    "black>=22.0",
-    "isort>=5.10",
-    "flake8>=4.0",
-    "mypy>=0.990",
+# Test dependencies, each pinned to one exact version.
+test = [
+    "pytest==8.3.5",
+    "pytest-cov==6.1.1",
+    "hypothesis==6.135.0",
 ]
-gpu = [
-    "torch>=2.0.0",
-]
-
-[project.scripts]
-auto-spec = "auto_spec.cli:main"
-
-[project.urls]
-Homepage = "https://github.com/yourusername/auto-spec"
-Documentation = "https://github.com/yourusername/auto-spec#readme"
-Repository = "https://github.com/yourusername/auto-spec.git"
-Issues = "https://github.com/yourusername/auto-spec/issues"
 
 [tool.setuptools]
-packages = ["auto_spec", "auto_spec.prompts", "auto_spec.utils"]
+packages = ["spec_pipeline", "solidity_graph"]
 
-[tool.black]
-line-length = 100
-target-version = ['py39']
+# ---------------------------------------------------------------------------
+# Canonical pytest / coverage configuration.
+# This supersedes the minimal pytest.ini from task 1.1.
+# ---------------------------------------------------------------------------
 
-[tool.isort]
-profile = "black"
-line_length = 100
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-ra --strict-markers --strict-config"
+markers = [
+    "unit: fast unit tests",
+    "property: hypothesis property-based tests",
+    "integration: fixture-backed integration tests",
+    "slow: tests that are heavier but still run in the default suite (e.g. the real Paired_Dataset scan)",
+]
+# Keep hypothesis output visible and its own warnings from failing the run.
+filterwarnings = [
+    "ignore::hypothesis.errors.NonInteractiveExampleWarning",
+]
 
-[tool.mypy]
-python_version = "3.9"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = false
+[tool.coverage.run]
+branch = true
+source = ["spec_pipeline"]
+omit = [
+    "*/tests/*",
+    "*/__main__.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+# Requirement 10.6: statement coverage floor for spec_pipeline is 80 percent.
+fail_under = 80
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+]
+
+[tool.coverage.paths]
+source = ["spec_pipeline"]

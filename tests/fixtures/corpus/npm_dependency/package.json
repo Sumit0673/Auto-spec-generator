@@ -1,0 +1,8 @@
+{
+  "name": "npm-dependency-fixture",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@openzeppelin/contracts": "4.9.0"
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "description": "Fixture_Corpus manifest (Requirements 19.1, 19.2, 19.9). One entry per Contract_Shape_Taxonomy shape. 'expected_outcome' is a member of spec_pipeline.outcomes.Outcome and reflects the terminal outcome for THIS environment, where slither, solc, and certoraRun are absent (network disabled, tools removed from PATH). Outcomes marked tool-dependent in 'notes' would change if the missing external tool were installed.",
+  "shapes": {
+    "single_file": {
+      "project_dir": "single_file",
+      "expected_outcome": "tool_unavailable",
+      "notes": "One first-party contract in one file. Stage 1-4 run from the LLM_Cache; Stage 5 needs certoraRun/solc which are absent, so the run terminates with tool_unavailable. Tool-dependent: with the prover installed this could reach a verification verdict."
+    },
+    "multi_contract": {
+      "project_dir": "multi_contract",
+      "expected_outcome": "tool_unavailable",
+      "notes": "Multiple first-party contracts in one project. Terminates at Stage 5 with tool_unavailable because certoraRun/solc are absent. Tool-dependent."
+    },
+    "inheritance_depth": {
+      "project_dir": "inheritance_depth",
+      "expected_outcome": "tool_unavailable",
+      "notes": "Inheritance chain of depth three or more. Terminates at Stage 5 with tool_unavailable because certoraRun/solc are absent. Tool-dependent."
+    },
+    "library_dependent": {
+      "project_dir": "library_dependent",
+      "expected_outcome": "tool_unavailable",
+      "notes": "First-party contract depending on a library. Terminates at Stage 5 with tool_unavailable because certoraRun/solc are absent. Tool-dependent."
+    },
+    "struct_enum_signature": {
+      "project_dir": "struct_enum_signature",
+      "expected_outcome": "tool_unavailable",
+      "notes": "Struct/enum type in an external function signature. Terminates at Stage 5 with tool_unavailable because certoraRun/solc are absent. Tool-dependent."
+    },
+    "upgradeable_proxy": {
+      "project_dir": "upgradeable_proxy",
+      "expected_outcome": "tool_unavailable",
+      "notes": "Upgradeable proxy with an initializer instead of a constructor. Terminates at Stage 5 with tool_unavailable because certoraRun/solc are absent. Tool-dependent."
+    },
+    "foundry_layout": {
+      "project_dir": "foundry_layout",
+      "expected_outcome": "tool_unavailable",
+      "notes": "Foundry build layout (foundry.toml, remappings.txt, src/, lib/). Terminates at Stage 5 with tool_unavailable because certoraRun/solc are absent. Tool-dependent."
+    },
+    "hardhat_layout": {
+      "project_dir": "hardhat_layout",
+      "expected_outcome": "tool_unavailable",
+      "notes": "Hardhat build layout (hardhat.config.js, package.json, contracts/). Terminates at Stage 5 with tool_unavailable because certoraRun/solc are absent. Tool-dependent."
+    },
+    "npm_dependency": {
+      "project_dir": "npm_dependency",
+      "expected_outcome": "tool_unavailable",
+      "notes": "npm dependency layout with node_modules/*/*.sol imports. Terminates at Stage 5 with tool_unavailable because certoraRun/solc are absent. Tool-dependent."
+    },
+    "mixed_pragmas": {
+      "project_dir": "mixed_pragmas",
+      "expected_outcome": "unsupported_pragma_set",
+      "notes": "Two first-party files declaring disjoint solc pragmas (0.6.12 and 0.8.19). The Project_Resolver finds no common version and reports unsupported_pragma_set before any prover invocation. Not tool-dependent: the disjoint pragma set is detected from the sources alone."
+    },
+    "interface_only": {
+      "project_dir": "interface_only",
+      "expected_outcome": "no_first_party_contracts",
+      "notes": "File declaring only interfaces (no concrete contract). The Extractor finds zero first-party contracts, so the run short-circuits with no_first_party_contracts before any LLM call. Not tool-dependent."
+    },
+    "abstract_contract": {
+      "project_dir": "abstract_contract",
+      "expected_outcome": "no_first_party_contracts",
+      "notes": "File declaring only an abstract contract (no deployable first-party contract). The Extractor finds zero first-party contracts, so the run short-circuits with no_first_party_contracts. Not tool-dependent."
+    }
+  }
+}

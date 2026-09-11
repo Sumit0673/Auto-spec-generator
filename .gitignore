@@ -1,61 +1,45 @@
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
+contracts_only/
+contracts_with_specs/
+spec_only/
+Raw_Scraper/
 
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
-.hypothesis/
+solidity_graph/__pycache__/
+
+# Python bytecode and caches
+__pycache__/
+*.pyc
 
 # Virtual environments
-venv/
-env/
-ENV/
-.venv
+.venv/
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
+# Pipeline default output directory
+spec_pipeline_output/
+spec_pipeline/Output/
+.certora_internal/
 
-# Environment
+# Evaluation default output directory
+eval_output/
+
+# LLM record/replay cache directory
+.llm_cache/
+
+.kiro/
+kiro*
+.hypothesis/
+
+# Audit report PDFs (not redistributed in the public repo)
+reports/
+
+# Environment files
 .env
 .env.local
 .env.*.local
 
-# Output
-auto_spec_output/
-output/
-*.spec
-specs/
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
 
-# Database
-chroma_db/
-*.db
-*.sqlite3
-
-# Temporary
-*.tmp
-temp/
+# Kiro session exports
+kiro-session-*.zip
